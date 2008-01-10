@@ -1,6 +1,5 @@
-pro nactidata
+pro nactidata, file
 	common data, channel_a, range_a, timebase
-	file = DIALOG_PICKFILE(/READ)
 	openr, fd, file, /GET_LUN
 	line=''
 	range_a=0

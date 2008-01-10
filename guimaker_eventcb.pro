@@ -27,7 +27,8 @@
 
 ;-----------------------------------------------------------------
 pro FileLoad, Event
-	nactidata
+	file = DIALOG_PICKFILE(/READ)
+	nactidata, file
 	draw = widget_info(Event.top, FIND_BY_UNAME='WID_DRAW_0')
 	WIDGET_CONTROL, draw, GET_VALUE=drawID
 	wset, drawID

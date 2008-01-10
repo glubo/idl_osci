@@ -1,6 +1,6 @@
 pro analyze_data
 	common data, channel_a, range_a, timebase
-	common datainfo, musps, vpl, zero, negative, t_fall, t_peak_max, noise_start
+	common datainfo, musps, vpl, negative, t_fall, t_peak_max, noise_start, peak_1, peak_2
 	
 	a = min(channel_a, peak_min)
 	a = max(channel_a, peak_max)
@@ -12,6 +12,7 @@ pro analyze_data
 	t_fall = abs(peak_min-peak_max) ; doba mezi peaky, tedy doba propadu castice valcem
 	t_peak_max = t_fall/2 ; empiricky odhadnuta maximalni delka peaku
 
+	;a nyni si urcime polohu nuly jako stredni hodnotu sumu
 	noise_start = (negative?peak_min:peak_max) + t_peak_max
 	print, "Noise_start: ", noise_start
 
@@ -21,4 +22,14 @@ pro analyze_data
 	zero = mean(noise)
 
 	print, "Zero: ", zero
+
+	channel_a = channel_a - zero
+
+	musps = tb2musps(timebase)
+	;a nyni si spocteme plochu peaku
+	peak_1 = integrate_peak(channel_a, peak_max, t_peak_max, musps)
+	peak_2 = integrate_peak(channel_a, peak_min, t_peak_max, musps)
+	
+	print, "Peak 1: ", peak_1
+	print, "Peak 2: ", peak_2
 end
