@@ -1,0 +1,17 @@
+common data, channel_a, range_a, timebase
+	channel_a -- kanal A v BYTARR
+	range_a -- id rozsahu napeti
+	timebase -- id vzorkovaci frekvence
+
+TimeBase
+id	cas
+5	20 \mu s na jednu hodnotu
+
+Range
+id	rozsah
+7	
+
+common datainfo, musps, vpl, zero
+	musps -- mikrosekund na vzorek
+	vpl -- voltu na jednu uroven
+	zero -- kde je nulove napeti (v ramci byte)
