@@ -1,6 +1,6 @@
 pro analyze_data
 	common data, channel_a, range_a, timebase
-	common datainfo, musps, vpl, negative, t_fall, t_peak_max, noise_start, peak_1, peak_2
+	common datainfo, musps, vpl, negative, t_fall, t_peak_max, noise_start, peak_1, peak_2, peak_1_data, peak_2_data
 	
 	a = min(channel_a, peak_min)
 	a = max(channel_a, peak_max)
@@ -27,8 +27,8 @@ pro analyze_data
 
 	musps = tb2musps(timebase)
 	;a nyni si spocteme plochu peaku
-	peak_1 = integrate_peak(channel_a, peak_max, t_peak_max, musps)
-	peak_2 = integrate_peak(channel_a, peak_min, t_peak_max, musps)
+	peak_1 = integrate_peak(channel_a, peak_max, t_peak_max, musps, saveit=peak_1_data)
+	peak_2 = integrate_peak(channel_a, peak_min, t_peak_max, musps, saveit=peak_2_data)
 	
 	print, "Peak 1: ", peak_1
 	print, "Peak 2: ", peak_2

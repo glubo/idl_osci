@@ -15,3 +15,13 @@ common datainfo, musps, vpl, zero
 	musps -- mikrosekund na vzorek
 	vpl -- voltu na jednu uroven
 	zero -- kde je nulove napeti (v ramci byte)
+
+
+
+jak udelat named variable v IDL:
+pro neco, saveit=saveit
+	...
+	if ARG_PRESENT(saveit) then begin
+		(Scope_VarFetch(Scope_VarName(saveit, LEVEL=-1), LEVEL=-1, /ENTER)) = ...
+	end
+end

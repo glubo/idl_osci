@@ -114,11 +114,6 @@ pro DrawExpose, Event
 	wset, drawID
 	replot
 end
-;
-; Empty stub procedure used for autoloading.
-;
-pro guimaker_eventcb
-end
 ;-----------------------------------------------------------------
 ; Activate Button Callback Procedure.
 ; Argument:
@@ -142,7 +137,9 @@ end
 
 ;-----------------------------------------------------------------
 pro ViewWhole, Event
-
+	common viewmode, viewid
+	viewid = 0
+	replot
 end
 ;-----------------------------------------------------------------
 ; Activate Button Callback Procedure.
@@ -167,7 +164,9 @@ end
 
 ;-----------------------------------------------------------------
 pro ViewPeak1, Event
-
+	common viewmode, viewid
+	viewid = 1
+	replot
 end
 ;-----------------------------------------------------------------
 ; Activate Button Callback Procedure.
@@ -192,5 +191,12 @@ end
 
 ;-----------------------------------------------------------------
 pro ViewPeak2, Event
-
+	common viewmode, viewid
+	viewid = 2
+	replot
+end
+;
+; Empty stub procedure used for autoloading.
+;
+pro guimaker_eventcb
 end

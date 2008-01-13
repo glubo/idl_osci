@@ -18,7 +18,11 @@ function integrate_peak, channel, peak_pos, t_peak_max, musps, saveit=saveit
 	peak = channel[tstart:tstop]
 	x = indgen(N_ELEMENTS(peak)) * musps
 	retval = INT_TABULATED(x, peak)
-	if KEYWORD_SET(saveit) then saveit=peak
+
+	;pokud je definovan saveit vratime nim data ze kterych jsme integrovali peak
+	if ARG_PRESENT(saveit) then begin
+		(Scope_VarFetch(Scope_VarName(saveit, LEVEL=-1), LEVEL=-1, /ENTER)) = peak
+	end
 	return, retval
 end
 
