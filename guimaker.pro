@@ -3,7 +3,7 @@
 ;     generated and should not be modified.
 
 ; 
-; Generated on:	01/10/2008 13:33.45
+; Generated on:	01/13/2008 12:11.18
 ; 
 pro WID_BASE_0_event, Event
 
@@ -26,6 +26,18 @@ pro WID_BASE_0_event, Event
     Widget_Info(wWidget, FIND_BY_UNAME='W_MENU_4'): begin
       if( Tag_Names(Event, /STRUCTURE_NAME) eq 'WIDGET_BUTTON' )then $
         FileExit, Event
+    end
+    Widget_Info(wWidget, FIND_BY_UNAME='W_MENU_7'): begin
+      if( Tag_Names(Event, /STRUCTURE_NAME) eq 'WIDGET_BUTTON' )then $
+        ViewWhole, Event
+    end
+    Widget_Info(wWidget, FIND_BY_UNAME='W_MENU_8'): begin
+      if( Tag_Names(Event, /STRUCTURE_NAME) eq 'WIDGET_BUTTON' )then $
+        ViewPeak1, Event
+    end
+    Widget_Info(wWidget, FIND_BY_UNAME='W_MENU_9'): begin
+      if( Tag_Names(Event, /STRUCTURE_NAME) eq 'WIDGET_BUTTON' )then $
+        ViewPeak2, Event
     end
     Widget_Info(wWidget, FIND_BY_UNAME='WID_DRAW_0'): begin
       if( Tag_Names(Event, /STRUCTURE_NAME) eq 'WIDGET_DRAW' )then $
@@ -57,6 +69,16 @@ pro WID_BASE_0, GROUP_LEADER=wGroup, _EXTRA=_VWBExtra_
 
   
   W_MENU_4 = Widget_Button(W_MENU_0, UNAME='W_MENU_4' ,VALUE='E&xit')
+  
+  W_MENU_6 = Widget_Button(WID_BASE_0_MBAR, UNAME='W_MENU_6' ,/MENU  $
+      ,VALUE='&View')
+
+  
+  W_MENU_7 = Widget_Button(W_MENU_6, UNAME='W_MENU_7' ,VALUE='&Whole')
+  
+  W_MENU_8 = Widget_Button(W_MENU_6, UNAME='W_MENU_8' ,VALUE='Peak&1')
+  
+  W_MENU_9 = Widget_Button(W_MENU_6, UNAME='W_MENU_9' ,VALUE='Peak&2')
   
   WID_DRAW_0 = Widget_Draw(WID_BASE_0, UNAME='WID_DRAW_0' ,YOFFSET=19  $
       ,SCR_XSIZE=724 ,SCR_YSIZE=490 ,RETAIN=0 ,/EXPOSE_EVENTS)

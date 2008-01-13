@@ -31,6 +31,23 @@ BEGIN
       ONACTIVATE "FileExit"
       END
     END
+    W_MENU_6 PUSHBUTTON 0 0 0 0
+    VALUE "&View"
+    MENU
+    BEGIN
+      W_MENU_7 PUSHBUTTON 0 0 0 0
+      VALUE "&Whole"
+      ONACTIVATE "ViewWhole"
+      END
+      W_MENU_8 PUSHBUTTON 0 0 0 0
+      VALUE "Peak&1"
+      ONACTIVATE "ViewPeak1"
+      END
+      W_MENU_9 PUSHBUTTON 0 0 0 0
+      VALUE "Peak&2"
+      ONACTIVATE "ViewPeak2"
+      END
+    END
   END
   WID_DRAW_0 DRAW 0 19 724 490
     ONEXPOSE "DrawExpose"
