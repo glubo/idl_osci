@@ -11,11 +11,22 @@ Range
 id	rozsah
 7	
 
-common datainfo, musps, vpl, zero
+common datainfo, musps, vpl, negative, t_fall, t_peak_max, noise_start, peak_1, peak_2, peak_1_data, peak_2_data
 	musps -- mikrosekund na vzorek
 	vpl -- voltu na jednu uroven
 	zero -- kde je nulove napeti (v ramci byte)
+	negative -- mame negativni castici?
+	t_fall -- pocet vzorku mezi extremy peaku
+	t_peak_max -- maximalni uvazovana delka peaku v samplech
+	noise_start -- pocet samplu nesumovych dat
+	peak_1	-- zintegrovana plocha peaku 1
+	peak_2	-- zintegrovana plocha peaku 2
+	peak_1_data -- vzorky ze kterych jsme integrovali 1. peak
+	peak_2_data -- vzorky ze kterych jsme integrovali 2. peak
 
+common viewmode, viewid
+	viewid -- 0 -whole 1 -peak1 2-peak2
+	
 
 
 jak udelat named variable v IDL:
