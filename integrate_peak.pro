@@ -1,5 +1,5 @@
 
-function integrate_peak, channel, peak_pos, t_peak_max, musps
+function integrate_peak, channel, peak_pos, t_peak_max, musps, saveit=saveit
 	;predpokladame, ze sum je pouze 50Hz, pricemz je to slusna
 	;sinusovka a tedy pokud preintegrujeme po intervalu 
 	;delitelnem 20 ns, pak je vysledna plocha zanesena sumem rovna nule
@@ -9,7 +9,7 @@ function integrate_peak, channel, peak_pos, t_peak_max, musps
 	
 	;dale predpokladame, ze y je jiz ve spravnych jednotkach
 
-	tstart = peak_pos - t_peak_max
+	tstart = peak_pos - t_peak_max*0.5
 	if tstart LE 0 then tstart = 0
 	lenght = CEIL(t_peak_max*musps/20.)*20/musps
 	tstop = tstart + lenght
@@ -18,6 +18,7 @@ function integrate_peak, channel, peak_pos, t_peak_max, musps
 	peak = channel[tstart:tstop]
 	x = indgen(N_ELEMENTS(peak)) * musps
 	retval = INT_TABULATED(x, peak)
+	if KEYWORD_SET(saveit) then saveit=peak
 	return, retval
 end
 
