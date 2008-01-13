@@ -1,5 +1,16 @@
 pro nactidata, file
 	common data, channel_a, range_a, timebase
+	
+	;nejdrive zkusime, jestli to neni soubor generovany generatorem
+	r = test_ascii(file)
+	if ( r EQ 1) then do begin
+		; pokud ano, nactem ho a vyplnime informace
+		timebase = 5
+		range_a = 7
+		channel_a = read_ascii(file)
+	end
+
+
 	openr, fd, file, /GET_LUN
 	line=''
 	range_a=0
