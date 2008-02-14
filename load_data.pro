@@ -1,5 +1,5 @@
 function load_data, file
-	retstruct = {raw_data, status:0, timebase:0, range_a:0, range_b:0, channel_a:ptr_new(), channel_b:ptr_new()}
+	retstruct = {raw_data}
 	;nejdrive zkusime, jestli to neni soubor generovany generatorem
 	r = query_ascii(file, fileinfo)
 	if ( r EQ 1) then begin

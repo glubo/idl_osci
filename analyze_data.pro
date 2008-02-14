@@ -1,6 +1,6 @@
 function analyze_data, raw_data
 	;{raw_data, status:0, timebase:0, range_a:0, range_b:0, channel_a:ptr_new(), channel_b:ptr_new()}
-	retstruct={analyzed_data,  musps:0., vpl:0., negative:0b, t_fall:0l, t_peak_max:0l, noise_start:0l, peak_1:0., peak_2:0., peak_1_data:ptr_new(), peak_2_data:ptr_new()}
+	retstruct={analyzed_data}
 	;TODO:vpl
 	
 	a = min((*raw_data.channel_a), peak_min)
