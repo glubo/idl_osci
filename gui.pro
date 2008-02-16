@@ -8,7 +8,6 @@ pro replot
 
 	IF NOT KEYWORD_SET(files) then return
 
-	print, selectedid
 	case showid of
 		1: begin
 			data = *files[selectedid].analyzed.peak_1_data
@@ -48,6 +47,19 @@ pro FileLoadDir, Event
 	UpdateDirInfo, Event, dir
 end
 
+pro UpdateFileInfo, Event
+	common directory, files, selectedid, showid
+
+	info = widget_info(Event.top, FIND_BY_UNAME='WID_IF')
+	text = "name: "+files[selectedid].filename+newline()
+
+
+	text = text + 'p1='+STRTRIM(STRING(files[selectedid].analyzed.peak_1),1)+' A.U.'+newline()
+	text = text + 'p2='+STRTRIM(STRING(files[selectedid].analyzed.peak_2),1)+' A.U.'+newline()
+
+	WIDGET_CONTROL, info, SET_VALUE = text
+end
+
 pro UpdateDirInfo, Event, path
 	common directory, files, selectedid, showid
 
@@ -66,8 +78,8 @@ pro UpdateDirInfo, Event, path
 	p1 = MOMENT(peak1, SDEV=p1e)
 	p2 = MOMENT(peak2, SDEV=p2e)
 
-	text = text + 'p1=('+STRTRIM(STRING(p1[0]),1)+'+/-'+STRTRIM(STRING(p1e),1)+')'+newline()
-	text = text + 'p2=('+STRTRIM(STRING(p2[0]),1)+'+/-'+STRTRIM(STRING(p2e),1)+')'+newline()
+	text = text + 'p1=('+STRTRIM(STRING(p1[0]),1)+'+/-'+STRTRIM(STRING(p1e),1)+') A.U.'+newline()
+	text = text + 'p2=('+STRTRIM(STRING(p2[0]),1)+'+/-'+STRTRIM(STRING(p2e),1)+') A.U.'+newline()
 
 	WIDGET_CONTROL, info, SET_VALUE = text
 end
@@ -90,6 +102,8 @@ pro FileList, Event
 	WIDGET_CONTROL, draw, GET_VALUE=drawID
 	wset, drawID
 	replot
+
+	UpdateFileInfo, Event
 end
 
 pro ShowList, Event
@@ -158,7 +172,7 @@ pro gui_window, GROUP_LEADER=wGroup, _EXTRA=_VWBExtra_
 	W_L = Widget_Label(GUI_WINDOWI, Value='Dir Info:')
 	W_ID = Widget_Text(GUI_WINDOWI, UNAME="WID_ID", XSIZE=40, YSIZE=6)
 	W_L = Widget_Label(GUI_WINDOWI, Value='File Info:')
-	W_IF = Widget_Text(GUI_WINDOWI, UNAME="WID_IF")
+	W_IF = Widget_Text(GUI_WINDOWI, UNAME="WID_IF", YSIZE=6)
 
 	;Widget_Control, /REALIZE, GUI_WINDOWT
 	Widget_Control, /REALIZE, GUI_WINDOW
