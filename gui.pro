@@ -11,18 +11,22 @@ pro replot
 	print, selectedid
 	case showid of
 		1: begin
-			data = files[selectedid].analyzed.peak_1_data
+			data = *files[selectedid].analyzed.peak_1_data
 		end
 		2: begin
-			data = files[selectedid].analyzed.peak_2_data
+			data = *files[selectedid].analyzed.peak_2_data
+		end
+		3: begin
+			ns = files[selectedid].analyzed.noise_start
+			data = (*files[selectedid].raw.channel_a)[ns:*]
 		end
 		else: begin
-			data = files[selectedid].raw.channel_a
+			data = *files[selectedid].raw.channel_a
 		end
 	end
 
-	x = indgen(N_ELEMENTS(*data))*(0.001*files[selectedid].analyzed.musps)
-	plot, x, *data, XTITLE='t [ms]', YTITLE='U [A.U.]'
+	x = indgen(N_ELEMENTS(data))*(0.001*files[selectedid].analyzed.musps)
+	plot, x, data, XTITLE='t [ms]', YTITLE='U [A.U.]'
 end
 
 pro FileLoadDir, Event
@@ -145,7 +149,7 @@ pro gui_window, GROUP_LEADER=wGroup, _EXTRA=_VWBExtra_
 	W_L = Widget_Label(GUI_WINDOWT, Value='File:')
 	W_File = Widget_ComboBox(GUI_WINDOWT, /DYNAMIC_RESIZE, UNAME='W_FILELIST');, Value=['Ahoj', 'Beta'])
 	W_L2 = Widget_Label(GUI_WINDOWT, Value='Show:')
-	W_Show = Widget_ComboBox(GUI_WINDOWT, /DYNAMIC_RESIZE, UNAME="W_SHOWLIST", Value=['Whole Data', 'Peak 1', 'Peak 2'])
+	W_Show = Widget_ComboBox(GUI_WINDOWT, /DYNAMIC_RESIZE, UNAME="W_SHOWLIST", Value=['Whole Data', 'Peak 1', 'Peak 2', 'Noise'])
 
 	GUI_WINDOWM = Widget_Base ( GUI_WINDOW, /ROW)
 
