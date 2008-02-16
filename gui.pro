@@ -9,7 +9,20 @@ pro replot
 	IF NOT KEYWORD_SET(files) then return
 
 	print, selectedid
-	plot, *files[selectedid].raw.channel_a
+	case showid of
+		1: begin
+			data = files[selectedid].analyzed.peak_1_data
+		end
+		2: begin
+			data = files[selectedid].analyzed.peak_2_data
+		end
+		else: begin
+			data = files[selectedid].raw.channel_a
+		end
+	end
+
+	x = indgen(N_ELEMENTS(*data))*(0.001*files[selectedid].analyzed.musps)
+	plot, x, *data, XTITLE='t [ms]'
 end
 
 pro FileLoadDir, Event
@@ -39,9 +52,20 @@ pro FillFileList, Event, files
 end
 
 pro FileList, Event
+;called when item selected from File List
 	common directory, files, selectedid, showid
-	print, "Event.index=", Event.index
 	selectedid = Event.index
+
+	draw = widget_info(Event.top, FIND_BY_UNAME='WID_DRAW_0')
+	WIDGET_CONTROL, draw, GET_VALUE=drawID
+	wset, drawID
+	replot
+end
+
+pro ShowList, Event
+;called when item selected from Show List
+	common directory, files, selectedid, showid
+	showid = Event.index
 
 	draw = widget_info(Event.top, FIND_BY_UNAME='WID_DRAW_0')
 	WIDGET_CONTROL, draw, GET_VALUE=drawID
@@ -68,6 +92,10 @@ pro gui_window_event, Event
 			if( Tag_Names(Event, /STRUCTURE_NAME) eq 'WIDGET_COMBOBOX' )then $
 				FileList, Event
 		end
+		Widget_Info(wWidget, FIND_BY_UNAME='W_SHOWLIST'): begin
+			if( Tag_Names(Event, /STRUCTURE_NAME) eq 'WIDGET_COMBOBOX' )then $
+				ShowList, Event
+		end
 		else:
 	end
 	
@@ -91,7 +119,7 @@ pro gui_window, GROUP_LEADER=wGroup, _EXTRA=_VWBExtra_
 	W_L = Widget_Label(GUI_WINDOWT, Value='File:')
 	W_File = Widget_ComboBox(GUI_WINDOWT, /DYNAMIC_RESIZE, UNAME='W_FILELIST');, Value=['Ahoj', 'Beta'])
 	W_L2 = Widget_Label(GUI_WINDOWT, Value='Show:')
-	W_Show = Widget_ComboBox(GUI_WINDOWT, /DYNAMIC_RESIZE);, Value=['Ahoj', 'Beta'])
+	W_Show = Widget_ComboBox(GUI_WINDOWT, /DYNAMIC_RESIZE, UNAME="W_SHOWLIST", Value=['Whole Data', 'Peak 1', 'Peak 2'])
 	W_D = Widget_Draw(GUI_WINDOW,XSIZE=800, YSIZE=600, UNAME="WID_DRAW_0")
 
 	;Widget_Control, /REALIZE, GUI_WINDOWT
