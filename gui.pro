@@ -3,32 +3,50 @@ pro FileExit, Event
 	WIDGET_CONTROL, Event.top, /DESTROY
 end
 
+pro replot
+	common directory, files, selectedid, showid
+
+	IF NOT KEYWORD_SET(files) then return
+
+	print, selectedid
+	plot, *files[selectedid].raw.channel_a
+end
+
 pro FileLoadDir, Event
-	common directory, files
+	common directory, files, selectedid, showid
 	dir = DIALOG_PICKFILE(/READ, /DIRECTORY, /FIX_FILTER)
 	
 	IF N_ELEMENTS(files) NE 0 THEN destroy_dir, files
 	files = load_dir(dir)
 
-	draw = widget_info(Event.top, FIND_BY_UNAME='WID_DRAW_0')
 	FillFileList, Event, files
+	selectedid = 0
+	showid = 0
+
+	draw = widget_info(Event.top, FIND_BY_UNAME='WID_DRAW_0')
 	WIDGET_CONTROL, draw, GET_VALUE=drawID
 	wset, drawID
-	;replot
+	replot
 end
 
 pro FillFileList, Event, files
 	filelist = 	Widget_Info(Event.top, FIND_BY_UNAME='W_FILELIST')
-	widget_control, filelist, COMBOBOX_SETVALUE=['']
 	list = replicate('',N_ELEMENTS(files))
 	for i=0, N_ELEMENTS(files)-1 do begin
 		list[i]=files[i].filename
 	endfor
+	widget_control, filelist, SET_VALUE=list
 end
 
 pro FileList, Event
-	print, Event.index
-	print, Event.STR
+	common directory, files, selectedid, showid
+	print, "Event.index=", Event.index
+	selectedid = Event.index
+
+	draw = widget_info(Event.top, FIND_BY_UNAME='WID_DRAW_0')
+	WIDGET_CONTROL, draw, GET_VALUE=drawID
+	wset, drawID
+	replot
 end
 
 pro gui_window_event, Event
