@@ -22,7 +22,7 @@ pro replot
 	end
 
 	x = indgen(N_ELEMENTS(*data))*(0.001*files[selectedid].analyzed.musps)
-	plot, x, *data, XTITLE='t [ms]'
+	plot, x, *data, XTITLE='t [ms]', YTITLE='U [A.U.]'
 end
 
 pro FileLoadDir, Event
@@ -40,6 +40,32 @@ pro FileLoadDir, Event
 	WIDGET_CONTROL, draw, GET_VALUE=drawID
 	wset, drawID
 	replot
+
+	UpdateDirInfo, Event, dir
+end
+
+pro UpdateDirInfo, Event, path
+	common directory, files, selectedid, showid
+
+	info = widget_info(Event.top, FIND_BY_UNAME='WID_ID')
+	text = "path: "+path+newline()
+
+	N = N_ELEMENTS(files)
+	peak1 = DBLARR(N)
+	peak2 = DBLARR(N)
+
+	for i=0,N-1 do begin
+		peak1[i] = files[i].analyzed.peak_1
+		peak2[i] = files[i].analyzed.peak_2
+	end
+
+	p1 = MOMENT(peak1, SDEV=p1e)
+	p2 = MOMENT(peak2, SDEV=p2e)
+
+	text = text + 'p1=('+STRTRIM(STRING(p1[0]),1)+'+/-'+STRTRIM(STRING(p1e),1)+')'+newline()
+	text = text + 'p2=('+STRTRIM(STRING(p2[0]),1)+'+/-'+STRTRIM(STRING(p2e),1)+')'+newline()
+
+	WIDGET_CONTROL, info, SET_VALUE = text
 end
 
 pro FillFileList, Event, files
@@ -120,7 +146,15 @@ pro gui_window, GROUP_LEADER=wGroup, _EXTRA=_VWBExtra_
 	W_File = Widget_ComboBox(GUI_WINDOWT, /DYNAMIC_RESIZE, UNAME='W_FILELIST');, Value=['Ahoj', 'Beta'])
 	W_L2 = Widget_Label(GUI_WINDOWT, Value='Show:')
 	W_Show = Widget_ComboBox(GUI_WINDOWT, /DYNAMIC_RESIZE, UNAME="W_SHOWLIST", Value=['Whole Data', 'Peak 1', 'Peak 2'])
-	W_D = Widget_Draw(GUI_WINDOW,XSIZE=800, YSIZE=600, UNAME="WID_DRAW_0")
+
+	GUI_WINDOWM = Widget_Base ( GUI_WINDOW, /ROW)
+
+	W_D = Widget_Draw(GUI_WINDOWM,XSIZE=800, YSIZE=600, UNAME="WID_DRAW_0")
+	GUI_WINDOWI = Widget_Base ( GUI_WINDOWM, /COLUMN)
+	W_L = Widget_Label(GUI_WINDOWI, Value='Dir Info:')
+	W_ID = Widget_Text(GUI_WINDOWI, UNAME="WID_ID", XSIZE=40, YSIZE=6)
+	W_L = Widget_Label(GUI_WINDOWI, Value='File Info:')
+	W_IF = Widget_Text(GUI_WINDOWI, UNAME="WID_IF")
 
 	;Widget_Control, /REALIZE, GUI_WINDOWT
 	Widget_Control, /REALIZE, GUI_WINDOW
