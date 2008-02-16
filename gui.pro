@@ -105,8 +105,8 @@ pro gui_window, GROUP_LEADER=wGroup, _EXTRA=_VWBExtra_
 	Resolve_Routine, 'gui_window_event', /COMPILE_FULL_FILE
 
 	GUI_WINDOW = Widget_Base (GROUP_LEADER=wGroup, UNAME="GUI_WINDOW", $
-		XOFFSET=5, YOFFSET=5, SCR_XSIZE=800, SCR_YSIZE=600, ROW=2, $
-		TITLE='Kulickator', SPACE=3, XPAD=3, YPAD=3, MBAR=GUI_WINDOW_MBAR)
+		ROW=2, $
+		TITLE='Kulickator', MBAR=GUI_WINDOW_MBAR)
 
 	W_MENU_0 = Widget_Button(GUI_WINDOW_MBAR, UNAME='W_MENU_0' ,/MENU  $
 		,VALUE='&File')
