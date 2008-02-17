@@ -70,10 +70,8 @@ pro UpdateDirInfo, Event, path
 	peak1 = DBLARR(N)
 	peak2 = DBLARR(N)
 
-	for i=0,N-1 do begin
-		peak1[i] = files[i].analyzed.peak_1
-		peak2[i] = files[i].analyzed.peak_2
-	end
+	peak1 = files.analyzed.peak_1
+	peak2 = files.analyzed.peak_2
 
 	p1 = MOMENT(peak1, SDEV=p1e)
 	p2 = MOMENT(peak2, SDEV=p2e)
@@ -87,9 +85,7 @@ end
 pro FillFileList, Event, files
 	filelist = 	Widget_Info(Event.top, FIND_BY_UNAME='W_FILELIST')
 	list = replicate('',N_ELEMENTS(files))
-	for i=0, N_ELEMENTS(files)-1 do begin
-		list[i]=files[i].filename
-	endfor
+	list=files.filename
 	widget_control, filelist, SET_VALUE=list
 end
 
