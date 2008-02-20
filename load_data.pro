@@ -1,7 +1,17 @@
+function query_glubo, file, fileinfo
+	openr, fd, file, /GET_LUN
+	line=''
+	readf, fd, line
+	free_lun, fd
+
+	if ( stregex(line, '^[1-90.]*$', /BOOLEAN) ) then return, 1
+	return, 0
+end
+
 function load_data, file
 	retstruct = {raw_data}
 	;nejdrive zkusime, jestli to neni soubor generovany generatorem
-	r = query_ascii(file, fileinfo)
+	r = query_glubo(file, fileinfo)
 	if ( r EQ 1) then begin
 		; pokud ano, nactem ho a vyplnime informace
 			retstruct.timebase = 5
