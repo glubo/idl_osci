@@ -11,8 +11,9 @@ end
 function load_data, file
 	retstruct = {raw_data}
 	;nejdrive zkusime, jestli to neni soubor generovany generatorem
-	r = query_glubo(file, fileinfo)
-	if ( r EQ 1) then begin
+	g = query_glubo(file, fileinfo) ;byl problem, ze nektere kratsi soubory se tvarili jako ascii
+	r = query_ascii(file, fileinfo)
+	if ( g EQ 1) then begin
 		; pokud ano, nactem ho a vyplnime informace
 			retstruct.timebase = 5
 			retstruct.range_a = 7
