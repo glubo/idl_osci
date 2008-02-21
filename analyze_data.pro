@@ -35,8 +35,8 @@ function analyze_data, raw_data
 	;a nyni si spocteme plochu peaku
 	p1_data = 0
 	p2_data = 0
-	retstruct.peak_1 = integrate_peak((*raw_data.channel_a), peak_max, retstruct.t_peak_max, retstruct.musps, saveit=p1_data)
-	retstruct.peak_2 = integrate_peak((*raw_data.channel_a), peak_min, retstruct.t_peak_max, retstruct.musps, saveit=p2_data)
+	retstruct.peak_1 = integrate_peak((*raw_data.channel_a), peak_max, retstruct.t_peak_max, retstruct.musps, saveit=p1_data)/retstruct.musps*0.001
+	retstruct.peak_2 = integrate_peak((*raw_data.channel_a), peak_min, retstruct.t_peak_max, retstruct.musps, saveit=p2_data)/retstruct.musps*0.001
 	retstruct.peak_1_data = ptr_new(p1_data)
 	retstruct.peak_2_data = ptr_new(p2_data)
 	
