@@ -1,35 +1,47 @@
-pro analyze_data
-	common data, channel_a, range_a, timebase
-	common datainfo, musps, vpl, negative, t_fall, t_peak_max, noise_start, peak_1, peak_2, peak_1_data, peak_2_data
+function analyze_data, raw_data
+	;{raw_data, status:0, timebase:0, range_a:0, range_b:0, channel_a:ptr_new(), channel_b:ptr_new()}
+	retstruct={analyzed_data}
+	;TODO:vpl
 	
-	a = min(channel_a, peak_min)
-	a = max(channel_a, peak_max)
+	retstruct.musps = tb2musps(raw_data.timebase)
+
+	noiseperiod = ROUND(20000./retstruct.musps)
+
+	a = min((*raw_data.channel_a), peak_min)
+	a = max((*raw_data.channel_a), peak_max)
 	
 	print, "Peak_min: ", peak_min
 	print, "Peak_max: ", peak_max
 
-	negative = peak_min GT peak_max ; mame negativni castici?
-	t_fall = abs(peak_min-peak_max) ; doba mezi peaky, tedy doba propadu castice valcem
-	t_peak_max = t_fall/2 ; empiricky odhadnuta maximalni delka peaku
+	retstruct.negative = peak_min GT peak_max ; mame negativni castici?
+	retstruct.t_fall = abs(peak_min-peak_max) ; doba mezi peaky, tedy doba propadu castice valcem
+	retstruct.t_peak_max = retstruct.t_fall/2 ; empiricky odhadnuta maximalni delka peaku
+
+	retstruct.t_peak_max = noiseperiod*ceil(retstruct.t_peak_max/noiseperiod); zaokrouhlime ji nahoru na predpokladanou periodu sumu
 
 	;a nyni si urcime polohu nuly jako stredni hodnotu sumu
-	noise_start = (negative?peak_min:peak_max) + t_peak_max
-	print, "Noise_start: ", noise_start
+	retstruct.noise_start = (retstruct.negative?peak_min:peak_max) + retstruct.t_peak_max
+	print, "Noise_start: ", retstruct.noise_start
 
-	if (noise_start GE N_ELEMENTS(channel_a)) then print, "ERROR:Noise starts after end of data" ;TODO vyhledove: nejak zlepsit zpracovani chyby
+	if (retstruct.noise_start GE N_ELEMENTS((*raw_data.channel_a))) then print, "ERROR:Noise starts after end of data" ;TODO vyhledove: nejak zlepsit zpracovani chyby
 	
-	noise = channel_a[noise_start:*]
+	noise = (*raw_data.channel_a)[retstruct.noise_start:*]
 	zero = mean(noise)
 
 	print, "Zero: ", zero
 
-	channel_a = channel_a - zero
+	(*raw_data.channel_a) = (*raw_data.channel_a) - zero
 
-	musps = tb2musps(timebase)
 	;a nyni si spocteme plochu peaku
-	peak_1 = integrate_peak(channel_a, peak_max, t_peak_max, musps, saveit=peak_1_data)
-	peak_2 = integrate_peak(channel_a, peak_min, t_peak_max, musps, saveit=peak_2_data)
+	p1_data = 0
+	p2_data = 0
+	retstruct.peak_1 = integrate_peak((*raw_data.channel_a), peak_max, retstruct.t_peak_max, retstruct.musps, saveit=p1_data)/retstruct.musps*0.001
+	retstruct.peak_2 = integrate_peak((*raw_data.channel_a), peak_min, retstruct.t_peak_max, retstruct.musps, saveit=p2_data)/retstruct.musps*0.001
+	retstruct.peak_1_data = ptr_new(p1_data)
+	retstruct.peak_2_data = ptr_new(p2_data)
 	
-	print, "Peak 1: ", peak_1
-	print, "Peak 2: ", peak_2
+	print, "Peak 1: ", retstruct.peak_1
+	print, "Peak 2: ", retstruct.peak_2
+
+	return, retstruct
 end
