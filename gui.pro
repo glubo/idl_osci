@@ -31,7 +31,8 @@ end
 pro FileLoadDir, Event
 	common directory, files, selectedid, showid
 	dir = DIALOG_PICKFILE(/READ, /DIRECTORY, /FIX_FILTER)
-	
+	;dir = 'F:\mereni\10V_Velka_C'
+
 	IF N_ELEMENTS(files) NE 0 THEN destroy_dir, files
 	files = load_dir(dir)
 
@@ -56,6 +57,7 @@ pro UpdateFileInfo, Event
 
 	text = text + 'p1='+STRTRIM(STRING(files[selectedid].analyzed.peak_1),1)+' A.U.'+newline()
 	text = text + 'p2='+STRTRIM(STRING(files[selectedid].analyzed.peak_2),1)+' A.U.'+newline()
+	text = text + 't='+STRTRIM(STRING(files[selectedid].analyzed.t_fall*files[selectedid].analyzed.musps*0.001),1)+' ms'+newline()
 
 	WIDGET_CONTROL, info, SET_VALUE = text
 end
@@ -69,15 +71,19 @@ pro UpdateDirInfo, Event, path
 	N = N_ELEMENTS(files)
 	peak1 = DBLARR(N)
 	peak2 = DBLARR(N)
+	t_fall = DBLARR(N)
 
 	peak1 = files.analyzed.peak_1
 	peak2 = files.analyzed.peak_2
+	t_fall = files.analyzed.t_fall*files.analyzed.musps*0.001
 
 	p1 = MOMENT(peak1, SDEV=p1e)
 	p2 = MOMENT(peak2, SDEV=p2e)
+	t = MOMENT(t_fall, SDEV=te)
 
 	text = text + 'p1=('+STRTRIM(STRING(p1[0]),1)+'+/-'+STRTRIM(STRING(p1e),1)+') A.U.'+newline()
 	text = text + 'p2=('+STRTRIM(STRING(p2[0]),1)+'+/-'+STRTRIM(STRING(p2e),1)+') A.U.'+newline()
+	text = text + 't = ('+STRTRIM(STRING(t[0]),1)+'+/-'+STRTRIM(STRING(te),1)+') ms'+newline()
 
 	WIDGET_CONTROL, info, SET_VALUE = text
 end
@@ -138,7 +144,7 @@ pro gui_window_event, Event
 		end
 		else:
 	end
-	
+
 end
 
 pro gui_window, GROUP_LEADER=wGroup, _EXTRA=_VWBExtra_
@@ -172,7 +178,7 @@ pro gui_window, GROUP_LEADER=wGroup, _EXTRA=_VWBExtra_
 
 	;Widget_Control, /REALIZE, GUI_WINDOWT
 	Widget_Control, /REALIZE, GUI_WINDOW
-	XManager, 'GUI_WINDOW', GUI_WINDOW, /NO_BLOCK  
+	XManager, 'GUI_WINDOW', GUI_WINDOW, /NO_BLOCK
 end
 
 pro gui, GROUP_LEADER=wGroup, _EXTRA=_VWBExtra_
