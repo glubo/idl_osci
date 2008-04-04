@@ -152,7 +152,7 @@ pro gui_window, GROUP_LEADER=wGroup, _EXTRA=_VWBExtra_
 
 	GUI_WINDOW = Widget_Base (GROUP_LEADER=wGroup, UNAME="GUI_WINDOW", $
 		ROW=2, $
-		TITLE='Kulickator', MBAR=GUI_WINDOW_MBAR)
+		TITLE='Kulickator', MBAR=GUI_WINDOW_MBAR, TAB_MODE=3)
 
 	W_MENU_0 = Widget_Button(GUI_WINDOW_MBAR, UNAME='W_MENU_0' ,/MENU  $
 		,VALUE='&File')
@@ -163,9 +163,9 @@ pro gui_window, GROUP_LEADER=wGroup, _EXTRA=_VWBExtra_
 
 	GUI_WINDOWT = Widget_Base ( GUI_WINDOW, /ROW)
 	W_L = Widget_Label(GUI_WINDOWT, Value='File:')
-	W_File = Widget_ComboBox(GUI_WINDOWT, /DYNAMIC_RESIZE, UNAME='W_FILELIST');, Value=['Ahoj', 'Beta'])
+	W_File = Widget_ComboBox(GUI_WINDOWT, /DYNAMIC_RESIZE, UNAME='W_FILELIST', TAB_MODE=1);, Value=['Ahoj', 'Beta'])
 	W_L2 = Widget_Label(GUI_WINDOWT, Value='Show:')
-	W_Show = Widget_ComboBox(GUI_WINDOWT, /DYNAMIC_RESIZE, UNAME="W_SHOWLIST", Value=['Whole Data', 'Peak 1', 'Peak 2', 'Noise'])
+	W_Show = Widget_ComboBox(GUI_WINDOWT, /DYNAMIC_RESIZE, UNAME="W_SHOWLIST", Value=['Whole Data', 'Peak 1', 'Peak 2', 'Noise'], TAB_MODE=1)
 
 	GUI_WINDOWM = Widget_Base ( GUI_WINDOW, /ROW)
 
