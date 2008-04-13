@@ -46,6 +46,7 @@ pro FileLoadDir, Event
 	replot
 
 	UpdateDirInfo, Event, dir
+	UpdateFileInfo, Event
 end
 
 pro UpdateFileInfo, Event
@@ -55,9 +56,9 @@ pro UpdateFileInfo, Event
 	text = "name: "+files[selectedid].filename+newline()
 
 
-	text = text + 'p1='+STRTRIM(STRING(files[selectedid].analyzed.peak_1),1)+' A.U.'+newline()
-	text = text + 'p2='+STRTRIM(STRING(files[selectedid].analyzed.peak_2),1)+' A.U.'+newline()
-	text = text + 't='+STRTRIM(STRING(files[selectedid].analyzed.t_fall*files[selectedid].analyzed.musps*0.001),1)+' ms'+newline()
+	text = text + 'pu = '+STRTRIM(STRING(files[selectedid].analyzed.peak_1),1)+' A.U.'+newline()
+	text = text + 'pd = '+STRTRIM(STRING(files[selectedid].analyzed.peak_2),1)+' A.U.'+newline()
+	text = text + 't = '+STRTRIM(STRING(files[selectedid].analyzed.t_fall*files[selectedid].analyzed.musps*0.001),1)+' ms'+newline()
 
 	WIDGET_CONTROL, info, SET_VALUE = text
 end
@@ -81,8 +82,8 @@ pro UpdateDirInfo, Event, path
 	p2 = MOMENT(peak2, SDEV=p2e)
 	t = MOMENT(t_fall, SDEV=te)
 
-	text = text + 'p1=('+STRTRIM(STRING(p1[0]),1)+'+/-'+STRTRIM(STRING(p1e),1)+') A.U.'+newline()
-	text = text + 'p2=('+STRTRIM(STRING(p2[0]),1)+'+/-'+STRTRIM(STRING(p2e),1)+') A.U.'+newline()
+	text = text + 'pu = ('+STRTRIM(STRING(p1[0]),1)+'+/-'+STRTRIM(STRING(p1e),1)+') A.U.'+newline()
+	text = text + 'pd = ('+STRTRIM(STRING(p2[0]),1)+'+/-'+STRTRIM(STRING(p2e),1)+') A.U.'+newline()
 	text = text + 't = ('+STRTRIM(STRING(t[0]),1)+'+/-'+STRTRIM(STRING(te),1)+') ms'+newline()
 
 	WIDGET_CONTROL, info, SET_VALUE = text
@@ -165,7 +166,9 @@ pro gui_window, GROUP_LEADER=wGroup, _EXTRA=_VWBExtra_
 	W_L = Widget_Label(GUI_WINDOWT, Value='File:')
 	W_File = Widget_ComboBox(GUI_WINDOWT, /DYNAMIC_RESIZE, UNAME='W_FILELIST', TAB_MODE=1);, Value=['Ahoj', 'Beta'])
 	W_L2 = Widget_Label(GUI_WINDOWT, Value='Show:')
-	W_Show = Widget_ComboBox(GUI_WINDOWT, /DYNAMIC_RESIZE, UNAME="W_SHOWLIST", Value=['Whole Data', 'Peak 1', 'Peak 2', 'Noise'], TAB_MODE=1)
+	W_Show = Widget_ComboBox(GUI_WINDOWT, /DYNAMIC_RESIZE, UNAME="W_SHOWLIST", Value=['Whole Data', 'Peak Up', 'Peak Down', 'Noise'], TAB_MODE=1)
+	W_L2 = Widget_Label(GUI_WINDOWT, Value='Show All:')
+
 
 	GUI_WINDOWM = Widget_Base ( GUI_WINDOW, /ROW)
 
