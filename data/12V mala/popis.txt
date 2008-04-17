@@ -1,0 +1,6 @@
+zapojeni zesilovace s R2= 6G3, C2=12p, C1=3p, delic 180k:40K
+trubka med 20 cm, loziskova kulicka mala
+
+napeti kulicka-zem 12,2V
+
+pinzeta z ruky, cca 10 cm nad vnitrni trubkou, zadna cepicka

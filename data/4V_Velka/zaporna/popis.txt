@@ -1,0 +1,16 @@
+zapojeni zesilovace s R2= 6G3, C2=12p, C1=3p, delic 180k:40K
+trubka med 20 cm, loziskova kulicka velka
+
+napeti kulicka-zem 4,2V
+
+pinzeta z ruky, cca 10 cm nad vnitrni trubkou, zadna cepicka
+001 - blizko 34
+002 - normal 58
+003 - centrum 65
+004 - blizko 42
+005 - centrum 63
+006 - normal 63
+007 - normal 56
+008 - blizko
+009 - normal
+010 - normal
