@@ -10,8 +10,8 @@ function analyze_data, raw_data
 	a = min((*raw_data.channel_a), peak_min)
 	a = max((*raw_data.channel_a), peak_max)
 
-	print, "Peak_min: ", peak_min
-	print, "Peak_max: ", peak_max
+	;print, "Peak_min: ", peak_min
+	;print, "Peak_max: ", peak_max
 
 	retstruct.negative = peak_min GT peak_max ; mame negativni castici?
 	retstruct.t_fall = abs(peak_min-peak_max) ; doba mezi peaky, tedy doba propadu castice valcem
@@ -21,14 +21,14 @@ function analyze_data, raw_data
 
 	;a nyni si urcime polohu nuly jako stredni hodnotu sumu
 	retstruct.noise_start = (retstruct.negative?peak_min:peak_max) + retstruct.t_peak_max
-	print, "Noise_start: ", retstruct.noise_start
+	;print, "Noise_start: ", retstruct.noise_start
 
 	if (retstruct.noise_start GE N_ELEMENTS((*raw_data.channel_a))) then print, "ERROR:Noise starts after end of data" ;TODO vyhledove: nejak zlepsit zpracovani chyby
 
 	noise = (*raw_data.channel_a)[retstruct.noise_start:*]
 	zero = mean(noise)
 
-	print, "Zero: ", zero
+	;print, "Zero: ", zero
 
 	(*raw_data.channel_a) = (*raw_data.channel_a) - zero
 
@@ -40,8 +40,8 @@ function analyze_data, raw_data
 	retstruct.peak_1_data = ptr_new(p1_data)
 	retstruct.peak_2_data = ptr_new(p2_data)
 
-	print, "Peak 1: ", retstruct.peak_1
-	print, "Peak 2: ", retstruct.peak_2
+	;print, "Peak 1: ", retstruct.peak_1
+	;print, "Peak 2: ", retstruct.peak_2
 
 	return, retstruct
 end

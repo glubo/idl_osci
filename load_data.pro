@@ -42,9 +42,9 @@ function load_data, file
 		if( pline[1] EQ 'Lenght') then length = UINT(pline[2])
 	end
 
-	print, 'Range_A=',retstruct.range_a
-	print, 'Lenght=',length
-	print, 'TimeBase=',retstruct.timebase
+	;print, 'Range_A=',retstruct.range_a
+	;print, 'Lenght=',length
+	;print, 'TimeBase=',retstruct.timebase
 	retstruct.channel_a = ptr_new(BYTARR(length))
 	readu, fd, (*retstruct.channel_a)
 	free_lun, fd
