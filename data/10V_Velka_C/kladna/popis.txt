@@ -1,0 +1,7 @@
+pravdepodobne doteky dle zvuku:
+003,005,010,
+
+zapojeni zesilovace s R2= 6G3, C2=12p, C1=3p, delic 180k:40K
+trubka med 20 cm, loziskova kulicka velka
+
+napeti kulicka-zem +10V
