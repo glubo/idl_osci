@@ -30,7 +30,7 @@ function analyze_data, raw_data
 
 	;print, "Zero: ", zero
 
-	odp = odpory
+	odp = odpory(0)
 	ra = ra2mV(raw_data.range_a)/odp.R2_A*odp.R4_A/odp.R3_A
 	(*raw_data.channel_a) = ((*raw_data.channel_a) - zero) * ra
 

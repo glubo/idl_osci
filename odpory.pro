@@ -1,4 +1,4 @@
-function odpory
+function odpory, a
 	retstruct = {odpory}
 	retstruct.R1_A = 10e6
 	retstruct.R1_B = 10e6
