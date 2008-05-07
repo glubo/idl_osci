@@ -30,7 +30,7 @@ pro replot
 	end
 
 	x = indgen(N_ELEMENTS(data))*(0.001*files[selectedid].analyzed.musps)
-	plot, x, data, XTITLE='t [ms]', YTITLE='U [A.U.]'
+	plot, x, data, XTITLE='t [ms]', YTITLE='U [mV]'
 end
 
 pro FileLoadDir, Event
