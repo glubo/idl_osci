@@ -30,7 +30,8 @@ function analyze_data, raw_data
 
 	;print, "Zero: ", zero
 
-	ra = ra2mV(raw_data.range_a)
+	odp = odpory
+	ra = ra2mV(raw_data.range_a)/odp.R2_A*odp.R4_A/odp.R3_A
 	(*raw_data.channel_a) = ((*raw_data.channel_a) - zero) * ra
 
 	;a nyni si spocteme plochu peaku
@@ -50,7 +51,8 @@ function analyze_data, raw_data
 		noise_start = peak_B - 0.3* retstruct.t_peak_max
 		noise = (*raw_data.channel_b)[0:noise_start]
 		zero = mean(noise)
-		(*raw_data.channel_b) = ((*raw_data.channel_b) - zero)*ra2mV(raw_data.range_b)
+		ra = ra2mV(raw_data.range_b)/odp.R2_B*odp.R4_B/odp.R3_B
+		(*raw_data.channel_b) = ((*raw_data.channel_b) - zero)*ra
 
 		p3_data = 0
 		retstruct.peak_3 = abs(integrate_peak((*raw_data.channel_b), peak_B, retstruct.t_peak_max, retstruct.musps, saveit=p3_data)/retstruct.musps*0.001)
