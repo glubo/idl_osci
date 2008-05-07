@@ -19,6 +19,11 @@ pro replot
 			ns = files[selectedid].analyzed.noise_start
 			data = (*files[selectedid].raw.channel_a)[ns:*]
 		end
+		4: begin
+			if files[selectedid].analyzed.peak_3_data then begin
+				data = *files[selectedid].analyzed.peak_3_data
+			endif else data = *files[selectedid].raw.channel_a
+		end
 		else: begin
 			data = *files[selectedid].raw.channel_a
 		end
@@ -58,6 +63,7 @@ pro UpdateFileInfo, Event
 
 	text = text + 'pu = '+STRTRIM(STRING(files[selectedid].analyzed.peak_1),1)+' A.U.'+newline()
 	text = text + 'pd = '+STRTRIM(STRING(files[selectedid].analyzed.peak_2),1)+' A.U.'+newline()
+	text = text + 'pB = '+STRTRIM(STRING(files[selectedid].analyzed.peak_3),1)+' A.U.'+newline()
 	text = text + 't = '+STRTRIM(STRING(files[selectedid].analyzed.t_fall*files[selectedid].analyzed.musps*0.001),1)+' ms'+newline()
 
 	WIDGET_CONTROL, info, SET_VALUE = text
@@ -72,18 +78,22 @@ pro UpdateDirInfo, Event, path
 	N = N_ELEMENTS(files)
 	peak1 = DBLARR(N)
 	peak2 = DBLARR(N)
+	peak3 = DBLARR(N)
 	t_fall = DBLARR(N)
 
 	peak1 = files.analyzed.peak_1
 	peak2 = files.analyzed.peak_2
+	peak3 = files.analyzed.peak_3
 	t_fall = files.analyzed.t_fall*files.analyzed.musps*0.001
 
 	p1 = MOMENT(peak1, SDEV=p1e)
 	p2 = MOMENT(peak2, SDEV=p2e)
+	p3 = MOMENT(peak3, SDEV=p3e)
 	t = MOMENT(t_fall, SDEV=te)
 
 	text = text + 'pu = ('+STRTRIM(STRING(p1[0]),1)+'+/-'+STRTRIM(STRING(p1e),1)+') A.U.'+newline()
 	text = text + 'pd = ('+STRTRIM(STRING(p2[0]),1)+'+/-'+STRTRIM(STRING(p2e),1)+') A.U.'+newline()
+	text = text + 'pB = ('+STRTRIM(STRING(p3[0]),1)+'+/-'+STRTRIM(STRING(p3e),1)+') A.U.'+newline()
 	text = text + 't = ('+STRTRIM(STRING(t[0]),1)+'+/-'+STRTRIM(STRING(te),1)+') ms'+newline()
 
 	WIDGET_CONTROL, info, SET_VALUE = text
@@ -166,7 +176,7 @@ pro gui_window, GROUP_LEADER=wGroup, _EXTRA=_VWBExtra_
 	W_L = Widget_Label(GUI_WINDOWT, Value='File:')
 	W_File = Widget_ComboBox(GUI_WINDOWT, /DYNAMIC_RESIZE, UNAME='W_FILELIST', TAB_MODE=1);, Value=['Ahoj', 'Beta'])
 	W_L2 = Widget_Label(GUI_WINDOWT, Value='Show:')
-	W_Show = Widget_ComboBox(GUI_WINDOWT, /DYNAMIC_RESIZE, UNAME="W_SHOWLIST", Value=['Whole Data', 'Peak Up', 'Peak Down', 'Noise'], TAB_MODE=1)
+	W_Show = Widget_ComboBox(GUI_WINDOWT, /DYNAMIC_RESIZE, UNAME="W_SHOWLIST", Value=['Whole Data', 'Peak Up', 'Peak Down', 'Noise', 'Peak B'], TAB_MODE=1)
 	W_L2 = Widget_Label(GUI_WINDOWT, Value='Show All:')
 
 
