@@ -40,6 +40,22 @@ function analyze_data, raw_data
 	retstruct.peak_1_data = ptr_new(p1_data)
 	retstruct.peak_2_data = ptr_new(p2_data)
 
+	if raw_data.channel_b  then begin
+		if retstruct.negative then begin
+			a = max((*raw_data.channel_b), peak_B)
+		end else begin
+			a = min((*raw_data.channel_b), peak_B)
+		end
+		noise_start = peak_B - 0.3* retstruct.t_peak_max
+		noise = (*raw_data.channel_b)[0:noise_start]
+		zero = mean(noise)
+		(*raw_data.channel_b) = (*raw_data.channel_b) - zero
+
+		p3_data = 0
+		retstruct.peak_3 = integrate_peak((*raw_data.channel_b), peak_B, retstruct.t_peak_max, retstruct.musps, saveit=p3_data)/retstruct.musps*0.001
+		retstruct.peak_3_data = ptr_new(p3_data)
+	endif
+
 	;print, "Peak 1: ", retstruct.peak_1
 	;print, "Peak 2: ", retstruct.peak_2
 
