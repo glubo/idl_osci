@@ -52,7 +52,7 @@ function analyze_data, raw_data
 		(*raw_data.channel_b) = (*raw_data.channel_b) - zero
 
 		p3_data = 0
-		retstruct.peak_3 = integrate_peak((*raw_data.channel_b), peak_B, retstruct.t_peak_max, retstruct.musps, saveit=p3_data)/retstruct.musps*0.001
+		retstruct.peak_3 = abs(integrate_peak((*raw_data.channel_b), peak_B, retstruct.t_peak_max, retstruct.musps, saveit=p3_data)/retstruct.musps*0.001)
 		retstruct.peak_3_data = ptr_new(p3_data)
 	endif
 
