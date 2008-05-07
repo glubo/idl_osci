@@ -8,6 +8,22 @@ function query_glubo, file, fileinfo
 	return, 0
 end
 
+function load_channel, fd
+	line = ''
+	length = 0
+	while (line NE '--- begin ---') do begin
+		readf, fd, line
+		;TODO vyhledove: spojit do jednoho stegex
+		if ( NOT stregex(line, '^[a-zA-Z1-90_]+=[a-zA-Z1-90]+', /BOOLEAN) ) then continue
+		pline = stregex(line, '(^[a-zA-Z1-90_]+)=([a-zA-Z1-90]+)', /SUBEXPR, /EXTRACT)
+
+		if( pline[1] EQ 'Lenght') then length = UINT(pline[2])
+	end
+	retchannel = ptr_new(BYTARR(length))
+	readu, fd, (*retchannel)
+	return, retchannel
+end
+
 function load_data, file
 	retstruct = {raw_data}
 	;nejdrive zkusime, jestli to neni soubor generovany generatorem
@@ -30,10 +46,14 @@ function load_data, file
 	retstruct.range_a=0
 	retstruct.timebase=0
 	length=0
-	while (line NE '--- begin ---') do begin
+	while ~EOF(fd) do begin
 		readf, fd, line
 		;TODO vyhledove: spojit do jednoho stegex
-		if ( NOT stregex(line, '^[a-zA-Z1-90_]+=[a-zA-Z1-90]+', /BOOLEAN) ) then continue
+		if ( NOT stregex(line, '^[a-zA-Z1-90_]+=[a-zA-Z1-90]+', /BOOLEAN) ) then begin
+			if( line EQ '[Channel_A]') then retstruct.channel_a = load_channel(fd)
+			if( line EQ '[Channel_B]') then retstruct.channel_b = load_channel(fd)
+			continue
+		endif
 		pline = stregex(line, '(^[a-zA-Z1-90_]+)=([a-zA-Z1-90]+)', /SUBEXPR, /EXTRACT)
 
 		;zdalo se, ze case nezere stringy
@@ -45,8 +65,6 @@ function load_data, file
 	;print, 'Range_A=',retstruct.range_a
 	;print, 'Lenght=',length
 	;print, 'TimeBase=',retstruct.timebase
-	retstruct.channel_a = ptr_new(BYTARR(length))
-	readu, fd, (*retstruct.channel_a)
 	free_lun, fd
 	return, retstruct
 end
