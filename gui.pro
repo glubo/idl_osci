@@ -26,11 +26,18 @@ pro replot
 		end
 		else: begin
 			data = *files[selectedid].raw.channel_a
+			x = indgen(N_ELEMENTS(data))*(0.001*files[selectedid].analyzed.musps)
+			plot, x, data, XTITLE='t [ms]', YTITLE='U [A]'
+			if files[selectedid].raw.channel_b then begin
+				data = *files[selectedid].raw.channel_b
+				oplot, x, data, COLOR=200
+			end
+			return
 		end
 	end
 
 	x = indgen(N_ELEMENTS(data))*(0.001*files[selectedid].analyzed.musps)
-	plot, x, data, XTITLE='t [ms]', YTITLE='U [mV]'
+	plot, x, data, XTITLE='t [ms]', YTITLE='U [A]'
 end
 
 pro FileLoadDir, Event
@@ -61,9 +68,9 @@ pro UpdateFileInfo, Event
 	text = "name: "+files[selectedid].filename+newline()
 
 
-	text = text + 'pu = '+STRTRIM(STRING(files[selectedid].analyzed.peak_1),1)+' A.U.'+newline()
-	text = text + 'pd = '+STRTRIM(STRING(files[selectedid].analyzed.peak_2),1)+' A.U.'+newline()
-	text = text + 'pB = '+STRTRIM(STRING(files[selectedid].analyzed.peak_3),1)+' A.U.'+newline()
+	text = text + 'pu = '+STRTRIM(STRING(files[selectedid].analyzed.peak_1),1)+' mC'+newline()
+	text = text + 'pd = '+STRTRIM(STRING(files[selectedid].analyzed.peak_2),1)+' mC'+newline()
+	text = text + 'pB = '+STRTRIM(STRING(files[selectedid].analyzed.peak_3),1)+' mC'+newline()
 	text = text + 't = '+STRTRIM(STRING(files[selectedid].analyzed.t_fall*files[selectedid].analyzed.musps*0.001),1)+' ms'+newline()
 
 	WIDGET_CONTROL, info, SET_VALUE = text
@@ -91,9 +98,9 @@ pro UpdateDirInfo, Event, path
 	p3 = MOMENT(peak3, SDEV=p3e)
 	t = MOMENT(t_fall, SDEV=te)
 
-	text = text + 'pu = ('+STRTRIM(STRING(p1[0]),1)+'+/-'+STRTRIM(STRING(p1e),1)+') A.U.'+newline()
-	text = text + 'pd = ('+STRTRIM(STRING(p2[0]),1)+'+/-'+STRTRIM(STRING(p2e),1)+') A.U.'+newline()
-	text = text + 'pB = ('+STRTRIM(STRING(p3[0]),1)+'+/-'+STRTRIM(STRING(p3e),1)+') A.U.'+newline()
+	text = text + 'pu = ('+STRTRIM(STRING(p1[0]),1)+'+/-'+STRTRIM(STRING(p1e),1)+') mC'+newline()
+	text = text + 'pd = ('+STRTRIM(STRING(p2[0]),1)+'+/-'+STRTRIM(STRING(p2e),1)+') mC'+newline()
+	text = text + 'pB = ('+STRTRIM(STRING(p3[0]),1)+'+/-'+STRTRIM(STRING(p3e),1)+') mC'+newline()
 	text = text + 't = ('+STRTRIM(STRING(t[0]),1)+'+/-'+STRTRIM(STRING(te),1)+') ms'+newline()
 
 	WIDGET_CONTROL, info, SET_VALUE = text
