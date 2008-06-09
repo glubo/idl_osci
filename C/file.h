@@ -24,6 +24,7 @@ typedef struct{
 
 
 TFile * Read_File(char *path);
+int	Is_Data_File(char *path);
 void Destroy_File(TFile *file);
 
 #endif

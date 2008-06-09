@@ -154,3 +154,32 @@ TFile* Read_File(char *path){
 	
 	EXITREADFILE;
 }
+
+#define MAX_LENGHT 102400
+int Is_Data_File(char *path){
+	FILE *fp = 0;
+	size_t flength = 0; //file length
+	char c;
+	char vert[]=SVERTICAL;
+	int i;
+	int valid = 1;
+
+	fp = fopen(path, "rb");
+	if(fp==NULL)
+		return 0;
+	fseek(fp, 0, SEEK_END);
+	flength = ftell(fp);
+	fseek(fp, 0, SEEK_SET);
+
+	if(flength > MAX_LENGHT){
+		valid = 0;
+	}else for(i=0; i<strlen(vert); i++){
+		if(fgetc(fp)!=vert[i]){
+			valid = 0;
+			break;
+		};
+	}
+
+	fclose(fp);
+	return valid;
+}
