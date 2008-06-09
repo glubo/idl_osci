@@ -4,11 +4,13 @@
 
 typedef struct{
 	char *path;
+	int timebase;
 	int has_a;
 	int has_b;
 	int range_a;
 	int range_b;
-	unsigned int length;
+	unsigned int length_a;
+	unsigned int length_b;
 	unsigned char *channel_a;
 	unsigned char *channel_b;
 	int had_start_stop;
@@ -21,7 +23,7 @@ typedef struct{
 }TFile;
 
 
-TFile Read_File(char *path);
+TFile * Read_File(char *path);
 void Destroy_File(TFile *file);
 
 #endif
