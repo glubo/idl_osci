@@ -62,9 +62,9 @@ int main( int   argc,
 	gtk_frame_set_shadow_type (GTK_FRAME (frame2), GTK_SHADOW_IN);
 
 
-	gtk_paned_pack1 (GTK_PANED (hpaned), frame1, TRUE, FALSE);
+	gtk_paned_pack1 (GTK_PANED (hpaned), frame1, FALSE, FALSE);
 
-	gtk_paned_pack2 (GTK_PANED (hpaned), frame2, FALSE, FALSE);
+	gtk_paned_pack2 (GTK_PANED (hpaned), frame2, TRUE, FALSE);
 
 	StartSliderA = gtk_hscale_new_with_range(0, 35536,1);
 	StopSliderA = gtk_hscale_new_with_range(0, 35536,1);
@@ -78,6 +78,7 @@ int main( int   argc,
 
 	/* create a new window */
 	window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+	gtk_window_set_default_size(GTK_WINDOW(window), 800, 600);
 
 	/* When the window is given the "delete_event" signal (this is given
 	* by the window manager, usually by the "close" option, or on the
