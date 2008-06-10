@@ -4,6 +4,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#if GLIB_MAJOR_VERSION == 2 && GLIB_MINOR_VERSION < 12
+	#define g_ascii_strtoll strtoll
+#endif
 
 void Destroy_File(TFile *file){
 	dprintf("Destroy_File\n");
