@@ -1,10 +1,45 @@
 #include <gtk/gtk.h>
+#include "file.h"
 
+GtkWidget *window;
+GtkWidget *chooser;
+GtkWidget *StartSliderA;
+GtkWidget *StopSliderA;
+GtkWidget *DatafileList;
+
+enum
+{
+  COL_NAME = 0,
+  COL_ID,
+  NUM_COLS
+} ;
+
+void Load_Dir(gchar *path){
+	GDir *dir;
+	const gchar *filename;
+	gchar *filepath;
+	GtkListStore *model;
+	GtkTreeIter iter;
+
+	model = GTK_LIST_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(DatafileList)));
+	gtk_list_store_clear(model);
+	dir = g_dir_open(path, 0, 0);
+	while((filename = g_dir_read_name(dir)) !=NULL){
+		filepath = g_strjoin(G_DIR_SEPARATOR_S, path, filename, NULL);
+		if(Is_Data_File(filepath)){
+			gtk_list_store_append(model, &iter);
+			gtk_list_store_set(model, &iter, COL_NAME, filename, -1);
+		};
+		g_free(filepath);
+	}
+}
 
 static void DirChanged( GtkFileChooser *chooser, gpointer data){
 	gchar *Folder;
 	Folder = gtk_file_chooser_get_current_folder(chooser);
 	g_print("Selected Folder: %s\n", Folder);
+	Load_Dir(Folder);
+	g_free(Folder);
 }
 
 static void StartSliderA_changed( GtkRange *range, gpointer data){
@@ -38,19 +73,67 @@ static void destroy( GtkWidget *widget,
     gtk_main_quit ();
 }
 
+
+static GtkTreeModel *
+create_datafiles_model (void)
+{
+  GtkListStore  *store;
+  
+  store = gtk_list_store_new (NUM_COLS, G_TYPE_STRING, G_TYPE_UINT);
+
+  return GTK_TREE_MODEL (store);
+}
+
+static GtkWidget *
+create_datafiles_view_and_model (void)
+{
+  GtkCellRenderer     *renderer;
+  GtkTreeModel        *model;
+  GtkWidget           *view;
+
+  view = gtk_tree_view_new ();
+
+
+
+  renderer = gtk_cell_renderer_text_new ();
+  gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW (view),
+                                               -1,      
+                                               "ID",  
+                                               renderer,
+                                               "text", COL_ID,
+                                               NULL);
+  renderer = gtk_cell_renderer_text_new ();
+  gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW (view),
+                                               -1,      
+                                               "Name",  
+                                               renderer,
+                                               "text", COL_NAME,
+                                               NULL);
+
+
+  model = create_datafiles_model ();
+
+  gtk_tree_view_set_model (GTK_TREE_VIEW (view), model);
+
+  /* The tree view has acquired its own reference to the
+   *  model, so we can drop ours. That way the model will
+   *  be freed automatically when the tree view is destroyed */
+
+  g_object_unref (model);
+
+  return view;
+}
+
+
 int main( int   argc,
           char *argv[] )
 {
 	/* GtkWidget is the storage type for widgets */
-	GtkWidget *window;
 	GtkWidget *notebook;
-	GtkWidget *chooser;
 	GtkWidget *hpaned;
 	GtkWidget *frame1;
 	GtkWidget *frame2;
 	GtkWidget *leftvbox;
-	GtkWidget *StartSliderA;
-	GtkWidget *StopSliderA;
 
 	gtk_init (&argc, &argv);
 	
@@ -69,8 +152,12 @@ int main( int   argc,
 	StartSliderA = gtk_hscale_new_with_range(0, 35536,1);
 	StopSliderA = gtk_hscale_new_with_range(0, 35536,1);
 	g_signal_connect (G_OBJECT(StartSliderA), "value_changed", G_CALLBACK(StartSliderA_changed), 0);
-	gtk_box_pack_end (GTK_BOX(leftvbox), StartSliderA, 0, 0, 0);
-	gtk_box_pack_end (GTK_BOX(leftvbox), StopSliderA, 0, 0, 0);
+
+	DatafileList = create_datafiles_view_and_model();
+
+	gtk_box_pack_start (GTK_BOX(leftvbox), DatafileList, 0, 0, 0);
+	gtk_box_pack_start (GTK_BOX(leftvbox), StartSliderA, 0, 0, 0);
+	gtk_box_pack_start (GTK_BOX(leftvbox), StopSliderA, 0, 0, 0);
 
 
 	/* This is called in all GTK applications. Arguments are parsed
