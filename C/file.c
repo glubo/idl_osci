@@ -30,14 +30,20 @@ void Destroy_File(TFile *file){
 #define SCHANB "[Channel_B]"
 #define SSWEEP "[Sweep]"
 #define SR "[R]"
+#define SSTARTSTOP "[StartStop]"
 #define STANDPEAK "[T_and_Peaks]"
-#define SCHANB "[Channel_B]"
 #define VRANGEA "Range_A="
 #define VRANGEB "Range_B="
 #define VTIMEBASE "TimeBase="
 #define VBSWEEP "B_Sweep="
 #define VSWEEPSTEP "Sweep_Step="
 #define VLENGHT "Lenght="
+#define VSTARTA "STARTA="
+#define VSTOPA "STOPA="
+#define VSTARTB "STARTB="
+#define VSTOPB "STOPB="
+#define VSTARTC "STARTC="
+#define VSTOPC "STOPC="
 #define VR1A "R1A="
 #define VR2A "R2A="
 #define VR3A "R3A="
@@ -165,6 +171,35 @@ TFile* Read_File(char *path){
 				i++;
 				if(lines[i])g_strstrip(lines[i]);
 			}
+		}else if(strncmp(SSTARTSTOP, lines[i], strlen(SSTARTSTOP)) == 0){
+			// Start Stop info 
+			ret->had_start_stop = 1;
+			i++;
+			g_strstrip(lines[i]);
+			while((lines[i] != NULL) && (lines[i][0] != '[')){
+				if(strncmp(VSTARTA, lines[i], strlen(VSTARTA)) == 0){
+					ret->start_A = g_ascii_strtoll(&lines[i][strlen(VSTARTA)], NULL, 10);
+					dprintf("Read_File: start_A = %d\n", ret->start_A);
+				}else if(strncmp(VSTARTB, lines[i], strlen(VSTARTB)) == 0){
+					ret->start_B = g_ascii_strtoll(&lines[i][strlen(VSTARTB)], NULL, 10);
+					dprintf("Read_File: start_B = %d\n", ret->start_B);
+				}else if(strncmp(VSTARTC, lines[i], strlen(VSTARTC)) == 0){
+					ret->start_C = g_ascii_strtoll(&lines[i][strlen(VSTARTC)], NULL, 10);
+					dprintf("Read_File: start_C = %d\n", ret->start_C);
+				}else if(strncmp(VSTOPA, lines[i], strlen(VSTOPA)) == 0){
+					ret->stop_A = g_ascii_strtoll(&lines[i][strlen(VSTOPA)], NULL, 10);
+					dprintf("Read_File: stop_A = %d\n", ret->stop_A);
+				}else if(strncmp(VSTOPB, lines[i], strlen(VSTOPB)) == 0){
+					ret->stop_B = g_ascii_strtoll(&lines[i][strlen(VSTOPB)], NULL, 10);
+					dprintf("Read_File: stop_B = %d\n", ret->stop_B);
+				}else if(strncmp(VSTOPC, lines[i], strlen(VSTOPC)) == 0){
+					ret->stop_C = g_ascii_strtoll(&lines[i][strlen(VSTOPC)], NULL, 10);
+					dprintf("Read_File: stop_C = %d\n", ret->stop_C);
+				};
+
+				i++;
+				g_strstrip(lines[i]);
+			};
 		}else if(strncmp(SSWEEP, lines[i], strlen(SSWEEP)) == 0){
 			// Sweep info 
 			// do we need this? I don't know
@@ -245,6 +280,73 @@ TFile* Read_File(char *path){
 	
 	EXITREADFILE;
 }
+
+int Write_File(TFile *file, char *path, int force){ //on error returns non-zero
+	// -1 -- fopen(path, "wb") failed
+	// -2 -- fwrite failed
+	FILE *fp;
+	int error = 0;
+
+	fp = fopen(path, "wb");
+
+	if(fp==NULL){
+		fprintf(stderr, "Write_File: cannot open %s for writing\n", path);
+		return -1;
+	}
+
+	if(fprintf(fp, "%s\r\n", SVERTICAL)<0) error=-2;
+	if(fprintf(fp, "%s%d\r\n",VRANGEA, file->range_a)<0) error=-2;
+	if(fprintf(fp, "%s%d\r\n",VRANGEB, file->range_b)<0) error=-2;
+	if(fprintf(fp, "%s\r\n", STIMEBASE)<0) error=-2;
+	if(fprintf(fp, "%s%d\r\n",VTIMEBASE, file->timebase)<0) error=-2;
+	if(fprintf(fp, "%s\r\n", SSWEEP)<0) error=-2;
+	if(fprintf(fp, "%s%d\r\n",VBSWEEP, file->b_sweep)<0) error=-2;
+	if(fprintf(fp, "%s%d\r\n",VSWEEPSTEP, file->sweep_step)<0) error=-2;
+	if(file->has_a){
+		if(fprintf(fp, "%s\r\n", SCHANA)<0) error=-2;
+		if(fprintf(fp, "%s%u\r\n",VLENGHT, file->length_a)<0) error=-2;
+		if(fprintf(fp, "\n%s\n", DBEGIN)<0) error=-2;
+		if(fwrite(file->channel_a, sizeof(unsigned char), file->length_a, fp)<0) error=-2;
+		if(fprintf(fp, "\n%s\n", DEND)<0) error=-2;
+	};
+	if(file->has_b){
+		if(fprintf(fp, "%s\r\n", SCHANB)<0) error=-2;
+		if(fprintf(fp, "%s%u\r\n",VLENGHT, file->length_b)<0) error=-2;
+		if(fprintf(fp, "\n%s\n", DBEGIN)<0) error=-2;
+		if(fwrite(file->channel_b, sizeof(unsigned char), file->length_b, fp)<0) error=-2;
+		if(fprintf(fp, "\n%s\n", DEND)<0) error=-2;
+	};
+
+	if(file->had_start_stop || force){
+		if(fprintf(fp, "%s\r\n", SSTARTSTOP)<0) error=-2;
+		if(fprintf(fp, "%s%d\r\n",VSTARTA, file->start_A)<0) error=-2;
+		if(fprintf(fp, "%s%d\r\n",VSTOPA, file->stop_A)<0) error=-2;
+		if(fprintf(fp, "%s%d\r\n",VSTARTB, file->start_B)<0) error=-2;
+		if(fprintf(fp, "%s%d\r\n",VSTOPB, file->stop_B)<0) error=-2;
+		if(fprintf(fp, "%s%d\r\n",VSTARTC, file->start_C)<0) error=-2;
+		if(fprintf(fp, "%s%d\r\n",VSTOPC, file->stop_C)<0) error=-2;
+	};
+
+	if(file->had_R || force){
+		if(fprintf(fp, "%s\r\n", SR)<0) error=-2;
+		if(fprintf(fp, "%s%lf\r\n",VR1A, file->R1_A)<0) error=-2;
+		if(fprintf(fp, "%s%lf\r\n",VR2A, file->R2_A)<0) error=-2;
+		if(fprintf(fp, "%s%lf\r\n",VR3A, file->R3_A)<0) error=-2;
+		if(fprintf(fp, "%s%lf\r\n",VR1B, file->R1_B)<0) error=-2;
+		if(fprintf(fp, "%s%lf\r\n",VR2B, file->R2_B)<0) error=-2;
+		if(fprintf(fp, "%s%lf\r\n",VR3B, file->R3_B)<0) error=-2;
+	};
+	if(file->had_t_and_peak || force){
+		if(fprintf(fp, "%s\r\n", STANDPEAK)<0) error=-2;
+		if(fprintf(fp, "%s%lf\r\n",VTFALL, file->t_fall_ms)<0) error=-2;
+		if(fprintf(fp, "%s%lf\r\n",VTFALL, file->t_fall_ms)<0) error=-2;
+	};
+
+	fclose(fp);
+
+	return error;
+}
+
 
 #define MAX_LENGHT 102400
 int Is_Data_File(char *path){
