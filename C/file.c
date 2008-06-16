@@ -28,10 +28,26 @@ void Destroy_File(TFile *file){
 #define STIMEBASE "[TimeBase]"
 #define SCHANA "[Channel_A]"
 #define SCHANB "[Channel_B]"
+#define SSWEEP "[Sweep]"
+#define SR "[R]"
+#define STANDPEAK "[T_and_Peaks]"
+#define SCHANB "[Channel_B]"
 #define VRANGEA "Range_A="
 #define VRANGEB "Range_B="
 #define VTIMEBASE "TimeBase="
+#define VBSWEEP "B_Sweep="
+#define VSWEEPSTEP "Sweep_Step="
 #define VLENGHT "Lenght="
+#define VR1A "R1A="
+#define VR2A "R2A="
+#define VR3A "R3A="
+#define VR1B "R1B="
+#define VR2B "R2B="
+#define VR3B "R3B="
+#define VTFALL "T_Fall_ms="
+#define VPEAKA "Peak_A_C="
+#define VPEAKB "Peak_B_C="
+#define VPEAKC "Peak_C_C="
 #define DBEGIN "--- begin ---"
 #define DEND "---  end  ---"
 #define DELIM "\r\n"
@@ -43,7 +59,6 @@ TFile* Read_File(char *path){
 	size_t flength = 0; //file length
 	typedef gchar gchar; //our type of character for loading data OS_SPECIFIC
 	gchar *fc = 0; //file content
-	gchar *pos = 0; //actual position in content
 	gchar **lines = 0; //actual line of content
 	int i = 0;
 	
@@ -150,7 +165,80 @@ TFile* Read_File(char *path){
 				i++;
 				if(lines[i])g_strstrip(lines[i]);
 			}
-		} else i++;
+		}else if(strncmp(SSWEEP, lines[i], strlen(SSWEEP)) == 0){
+			// Sweep info 
+			// do we need this? I don't know
+			i++;
+			g_strstrip(lines[i]);
+			while((lines[i] != NULL) && (lines[i][0] != '[')){
+				if(strncmp(VBSWEEP, lines[i], strlen(VBSWEEP)) == 0){
+					ret->b_sweep = g_ascii_strtoll(&lines[i][strlen(VBSWEEP)], NULL, 10);
+					dprintf("Read_File: b_sweep = %d\n", ret->b_sweep);
+				}else if(strncmp(VSWEEPSTEP, lines[i], strlen(VSWEEPSTEP)) == 0){
+					ret->sweep_step = g_ascii_strtoll(&lines[i][strlen(VSWEEPSTEP)], NULL, 10);
+					dprintf("Read_File: sweep_step = %d\n", ret->sweep_step);
+				};
+
+				i++;
+				g_strstrip(lines[i]);
+			};
+		}else if(strncmp(SR, lines[i], strlen(SR)) == 0){
+			// Resistors info 
+			ret->had_R = 1;
+			i++;
+			g_strstrip(lines[i]);
+			while((lines[i] != NULL) && (lines[i][0] != '[')){
+				if(strncmp(VR1A, lines[i], strlen(VR1A)) == 0){
+					ret->R1_A = g_ascii_strtoll(&lines[i][strlen(VR1A)], NULL, 10);
+					dprintf("Read_File: R1_A = %lf\n", ret->R1_A);
+				}else if(strncmp(VR2A, lines[i], strlen(VR2A)) == 0){
+					ret->R2_A = g_ascii_strtoll(&lines[i][strlen(VR2A)], NULL, 10);
+					dprintf("Read_File: R2_A = %lf\n", ret->R2_A);
+				}else if(strncmp(VR3A, lines[i], strlen(VR3A)) == 0){
+					ret->R3_A = g_ascii_strtoll(&lines[i][strlen(VR3A)], NULL, 10);
+					dprintf("Read_File: R3_A = %lf\n", ret->R3_A);
+				}else if(strncmp(VR1B, lines[i], strlen(VR1B)) == 0){
+					ret->R1_B = g_ascii_strtoll(&lines[i][strlen(VR1B)], NULL, 10);
+					dprintf("Read_File: R1_B = %lf\n", ret->R1_B);
+				}else if(strncmp(VR2B, lines[i], strlen(VR2B)) == 0){
+					ret->R2_B = g_ascii_strtoll(&lines[i][strlen(VR2B)], NULL, 10);
+					dprintf("Read_File: R2_B = %lf\n", ret->R2_B);
+				}else if(strncmp(VR3B, lines[i], strlen(VR3B)) == 0){
+					ret->R3_B = g_ascii_strtoll(&lines[i][strlen(VR3B)], NULL, 10);
+					dprintf("Read_File: R3_B = %lf\n", ret->R3_B);
+				};
+
+				i++;
+				g_strstrip(lines[i]);
+			};
+		}else if(strncmp(STANDPEAK, lines[i], strlen(STANDPEAK)) == 0){
+			// Time and Peaks info 
+			ret->had_t_and_peak = 1;
+			i++;
+			g_strstrip(lines[i]);
+			while((lines[i] != NULL) && (lines[i][0] != '[')){
+				if(strncmp(VTFALL, lines[i], strlen(VTFALL)) == 0){
+					ret->t_fall_ms = g_ascii_strtoll(&lines[i][strlen(VTFALL)], NULL, 10);
+					dprintf("Read_File: t_fall_ms = %lf\n", ret->t_fall_ms);
+				}else if(strncmp(VPEAKA, lines[i], strlen(VPEAKA)) == 0){
+					ret->peak_A_C = g_ascii_strtoll(&lines[i][strlen(VPEAKA)], NULL, 10);
+					dprintf("Read_File: peak_A_C = %lf\n", ret->peak_A_C);
+				}else if(strncmp(VPEAKB, lines[i], strlen(VPEAKB)) == 0){
+					ret->peak_B_C = g_ascii_strtoll(&lines[i][strlen(VPEAKB)], NULL, 10);
+					dprintf("Read_File: peak_B_C = %lf\n", ret->peak_B_C);
+				}else if(strncmp(VPEAKC, lines[i], strlen(VPEAKC)) == 0){
+					ret->peak_C_C = g_ascii_strtoll(&lines[i][strlen(VPEAKC)], NULL, 10);
+					dprintf("Read_File: peak_C_C = %lf\n", ret->peak_C_C);
+				};
+
+				i++;
+				g_strstrip(lines[i]);
+			};
+		} else {
+			//we throw away unknown line
+			i++;
+			g_strstrip(lines[i]);
+		}
 	}
 	g_strfreev(lines);
 
@@ -162,7 +250,6 @@ TFile* Read_File(char *path){
 int Is_Data_File(char *path){
 	FILE *fp = 0;
 	size_t flength = 0; //file length
-	char c;
 	char vert[]=SVERTICAL;
 	int i;
 	int valid = 1;
