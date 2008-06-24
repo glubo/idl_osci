@@ -1,4 +1,4 @@
-all: mainwindow file.o
+all: mainwindow file.o dir.o
 DEBUG=-g
 set_debug: clean
 	sed 's/debug=0/debug=1/' -i dprintf.h 
@@ -15,3 +15,6 @@ mainwindow: mainwindow.c file.o
 
 file.o: file.h file.c dprintf.h
 	gcc -c file.c `pkg-config --cflags glib-2.0` $(DEBUG) -Wall
+
+dir.o: dir.h dir.c 
+	gcc -c dir.c `pkg-config --cflags glib-2.0` $(DEBUG) -Wall

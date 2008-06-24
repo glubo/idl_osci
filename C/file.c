@@ -58,7 +58,7 @@ void Destroy_File(TFile *file){
 #define DEND "---  end  ---"
 #define DELIM "\r\n"
 
-TFile* Read_File(char *path){
+TFile* Read_File(const char *path){
 	#define EXITREADFILE {free(fc);return ret;}
 	FILE *fp = 0;
 	TFile *ret = 0;
