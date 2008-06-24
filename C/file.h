@@ -9,10 +9,13 @@ typedef struct{
 	int has_b;
 	int range_a;
 	int range_b;
+	int negative; //do we have a negative particle (is peak up before peak down)
 	unsigned int length_a;
 	unsigned int length_b;
 	unsigned char *channel_a;
 	unsigned char *channel_b;
+	unsigned char zero_a;
+	unsigned char zero_b;
 	int b_sweep;
 	int sweep_step;
 	int had_start_stop;
@@ -22,6 +25,7 @@ typedef struct{
 	int stop_B;
 	int start_C;
 	int stop_C;
+	int start_noise;
 	int had_R;
 	double R1_A;
 	double R2_A;

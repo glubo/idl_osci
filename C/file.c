@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 #if GLIB_MAJOR_VERSION == 2 && GLIB_MINOR_VERSION < 12
 	#define g_ascii_strtoll strtoll
 #endif
@@ -374,4 +375,69 @@ int Is_Data_File(char *path){
 
 	fclose(fp);
 	return valid;
+}
+
+unsigned long integrate(unsigned char *data, int start, int stop){
+	int i;
+	unsigned long  tmp;
+	if(start > stop){
+		tmp = start;
+		start=stop;
+		stop = tmp;
+	};
+	tmp = 0;
+	for(i=start; i<stop; i++){
+		tmp += data[i];
+	};
+	return tmp;
+}
+
+
+void Find_Min_Max(unsigned char *data, int lenght, int *min_pos, int *max_pos){	
+	int i;
+	unsigned char min, max;
+
+	min = data[0];
+	max = data[0];
+	*min_pos = *max_pos = 0;
+	for(i=0; i<lenght; i++){
+		if(data[i] < min){
+			*min_pos = i;
+			min = data[i];
+		}else if(data[i] > max){
+			*max_pos = i;
+			max = data[i];
+		};
+	};
+}
+
+int Analyze_File(TFile *f){
+	int min_A_pos, max_A_pos;
+	int min_max_A;
+	int min_B_pos, max_B_pos;
+	int t_peak_max;
+	int noiseperiod = 1;
+
+	if(f->has_a && !f->had_start_stop){
+		Find_Min_Max(f->channel_a, f->length_a, &min_A_pos, &max_A_pos);
+		if(max_A_pos < min_A_pos){
+			f->negative = 1;
+		}else{
+			f->negative = 0;
+		};
+		min_max_A = abs(max_A_pos-min_A_pos);
+		t_peak_max = min_max_A * 0.95; //empiricky odhadnuta maximalni delka peaku
+		t_peak_max = noiseperiod * ceil((double)t_peak_max/(double)noiseperiod); //zaokrouhlime nahoru na periodu sumu
+
+		f->start_noise = (f->negative?min_A_pos:max_A_pos) + t_peak_max;
+		f->start_noise = f->length_a - noiseperiod * floor((double)(f->length_a - f->start_noise)/(double)noiseperiod); //zaokrouhlime dolu delku sumu na periody sumu
+		if(f->start_noise > f->length_a){
+			fprintf(stderr, "Analyze_File: start_noise > lenght_a\n");
+			return -1;
+		};
+		
+		f->zero_a = integrate(f->channel_a, f->start_noise, f->length_a)/(f->length_a-f->start_noise);
+	}
+	
+	return 0;
 }

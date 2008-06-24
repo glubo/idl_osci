@@ -11,7 +11,7 @@ clean:
 	- rm *.o
 
 mainwindow: mainwindow.c file.o
-	gcc -o mainwindow  mainwindow.c file.o -Wall `pkg-config --cflags gtk+-2.0` `pkg-config --libs gtk+-2.0` $(DEBUG)
+	gcc -o mainwindow  mainwindow.c file.o -Wall `pkg-config --cflags gtk+-2.0` `pkg-config --libs gtk+-2.0` -lm $(DEBUG)
 
 file.o: file.h file.c dprintf.h
 	gcc -c file.c `pkg-config --cflags glib-2.0` $(DEBUG) -Wall
