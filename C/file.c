@@ -98,11 +98,11 @@ TFile* Read_File(const char *path){
 	lines = g_strsplit_set(fc, DELIM, 0);
 	i = 0;
 	while(lines[i] != NULL){
-		g_strstrip(lines[i]);
+		if(lines[i]!=0)g_strstrip(lines[i]);
 		if(strncmp(SVERTICAL, lines[i], strlen(SVERTICAL)) == 0){
 			//Vertical info
 			i++;
-			g_strstrip(lines[i]);
+			if(lines[i]!=0)g_strstrip(lines[i]);
 			while((lines[i] != NULL) && (lines[i][0] != '[')){
 				if(strncmp(VRANGEA, lines[i], strlen(VRANGEA)) == 0){
 					ret->range_a = g_ascii_strtoll(&lines[i][strlen(VRANGEA)], NULL, 10);
@@ -113,12 +113,12 @@ TFile* Read_File(const char *path){
 				};
 
 				i++;
-				g_strstrip(lines[i]);
+				if(lines[i]!=0)g_strstrip(lines[i]);
 			}
 		}else if(strncmp(STIMEBASE, lines[i], strlen(STIMEBASE)) == 0){
 			//Timebase info
 			i++;
-			g_strstrip(lines[i]);
+			if(lines[i]!=0)g_strstrip(lines[i]);
 
 			while((lines[i] != NULL) && (lines[i][0] != '[')){
 				if(strncmp(VTIMEBASE, lines[i], strlen(VTIMEBASE)) == 0){
@@ -126,17 +126,19 @@ TFile* Read_File(const char *path){
 					dprintf("Read_File: timebase = %d\n", ret->timebase);
 				};
 				i++;
-				g_strstrip(lines[i]);
+				if(lines[i]!=0)g_strstrip(lines[i]);
 			}
 		}else if(strncmp(SCHANA, lines[i], strlen(SCHANA)) == 0){
 			//Channel A data
 			i++;
-			g_strstrip(lines[i]);
+			if(lines[i]!=0)g_strstrip(lines[i]);
 			while((lines[i] != NULL) && (lines[i][0] != '[')){
 				if(strncmp(VLENGHT, lines[i], strlen(VLENGHT)) == 0){
 					ret->length_a = g_ascii_strtoll(&lines[i][strlen(VLENGHT)], NULL, 10);
 					dprintf("Read_File: length_a = %d\n", ret->length_a);
 				}else if(strncmp(DBEGIN, lines[i], strlen(DBEGIN)) == 0){
+					/* stara verze - problem s tim, ze se obcas data rozdeli a tim se vse posere
+					 *
 					int p;
 					if(ret->length_a != (p = strlen(lines[i+1]))){
 						fprintf(stderr, "Read_File: length_a (%d) doesn't match lenght of channel_a data (%d)", ret->length_a, p);
@@ -149,6 +151,24 @@ TFile* Read_File(const char *path){
 					}
 					ret->has_a = 1;
 					i += 2;
+					*/
+
+					gchar *tmp_pos;
+					gchar *tmp_end;
+					unsigned int tmp_len;
+					tmp_pos = strstr(fc, SCHANA);
+					tmp_pos = strstr(tmp_pos, DBEGIN);
+					tmp_end = strstr(tmp_pos, DEND);
+					tmp_end -= 1;
+					tmp_pos += strlen(DBEGIN)+1;
+					tmp_len = tmp_end-tmp_pos;
+					if(ret->length_a != tmp_len){
+						fprintf(stderr, "Read_File: length_a (%d) doesn't match lenght of channel_a data (%d)", ret->length_a, tmp_len);
+						ret->length_a = tmp_len;
+					}
+					ret->channel_a = calloc(ret->length_a, sizeof(gchar));
+					memcpy(ret->channel_a, tmp_pos, ret->length_a);
+					ret->has_a = 1;
 				};
 				i++;
 				if(lines[i])g_strstrip(lines[i]);
@@ -156,12 +176,14 @@ TFile* Read_File(const char *path){
 		}else if(strncmp(SCHANB, lines[i], strlen(SCHANB)) == 0){
 			//Channel B data
 			i++;
-			g_strstrip(lines[i]);
+			if(lines[i]!=0)g_strstrip(lines[i]);
 			while((lines[i] != NULL) && (lines[i][0] != '[')){
 				if(strncmp(VLENGHT, lines[i], strlen(VLENGHT)) == 0){
 					ret->length_b = g_ascii_strtoll(&lines[i][strlen(VLENGHT)], NULL, 10);
 					dprintf("Read_File: length_b = %d\n", ret->length_b);
 				}else if(strncmp(DBEGIN, lines[i], strlen(DBEGIN)) == 0){
+					/* stara verze - problem s tim, ze se obcas data rozdeli a tim se vse posere
+					 *
 					int p;
 					if(ret->length_b != (p = strlen(lines[i+1]))){
 						fprintf(stderr, "Read_File: length_b (%d) doesn't match lenght of channel_b data (%d)", ret->length_b, p);
@@ -174,6 +196,23 @@ TFile* Read_File(const char *path){
 					}
 					i += 2;
 					ret->has_b = 1;
+					*/
+					gchar *tmp_pos;
+					gchar *tmp_end;
+					unsigned int tmp_len;
+					tmp_pos = strstr(fc, SCHANB);
+					tmp_pos = strstr(tmp_pos, DBEGIN);
+					tmp_end = strstr(tmp_pos, DEND);
+					tmp_end -= 1;
+					tmp_pos += strlen(DBEGIN)+1;
+					tmp_len = tmp_end-tmp_pos;
+					if(ret->length_b != tmp_len){
+						fprintf(stderr, "Read_File: length_b (%d) doesn't match lenght of channel_b data (%d)", ret->length_b, tmp_len);
+						ret->length_b = tmp_len;
+					}
+					ret->channel_b = calloc(ret->length_b, sizeof(gchar));
+					memcpy(ret->channel_b, tmp_pos, ret->length_b);
+					ret->has_b = 1;
 				};
 				i++;
 				if(lines[i])g_strstrip(lines[i]);
@@ -182,7 +221,7 @@ TFile* Read_File(const char *path){
 			// Start Stop info 
 			ret->had_start_stop = 1;
 			i++;
-			g_strstrip(lines[i]);
+			if(lines[i]!=0)g_strstrip(lines[i]);
 			while((lines[i] != NULL) && (lines[i][0] != '[')){
 				if(strncmp(VSTARTA, lines[i], strlen(VSTARTA)) == 0){
 					ret->start_A = g_ascii_strtoll(&lines[i][strlen(VSTARTA)], NULL, 10);
@@ -211,13 +250,13 @@ TFile* Read_File(const char *path){
 				};
 
 				i++;
-				g_strstrip(lines[i]);
+				if(lines[i]!=0)g_strstrip(lines[i]);
 			};
 		}else if(strncmp(SSWEEP, lines[i], strlen(SSWEEP)) == 0){
 			// Sweep info 
 			// do we need this? I don't know
 			i++;
-			g_strstrip(lines[i]);
+			if(lines[i]!=0)g_strstrip(lines[i]);
 			while((lines[i] != NULL) && (lines[i][0] != '[')){
 				if(strncmp(VBSWEEP, lines[i], strlen(VBSWEEP)) == 0){
 					ret->b_sweep = g_ascii_strtoll(&lines[i][strlen(VBSWEEP)], NULL, 10);
@@ -228,13 +267,13 @@ TFile* Read_File(const char *path){
 				};
 
 				i++;
-				g_strstrip(lines[i]);
+				if(lines[i]!=0)g_strstrip(lines[i]);
 			};
 		}else if(strncmp(SR, lines[i], strlen(SR)) == 0){
 			// Resistors info 
 			ret->had_R = 1;
 			i++;
-			g_strstrip(lines[i]);
+			if(lines[i]!=0)g_strstrip(lines[i]);
 			while((lines[i] != NULL) && (lines[i][0] != '[')){
 				if(strncmp(VR1A, lines[i], strlen(VR1A)) == 0){
 					ret->R1_A = g_ascii_strtoll(&lines[i][strlen(VR1A)], NULL, 10);
@@ -263,13 +302,13 @@ TFile* Read_File(const char *path){
 				};
 
 				i++;
-				g_strstrip(lines[i]);
+				if(lines[i]!=0)g_strstrip(lines[i]);
 			};
 		}else if(strncmp(STANDPEAK, lines[i], strlen(STANDPEAK)) == 0){
 			// Time and Peaks info 
 			ret->had_t_and_peak = 1;
 			i++;
-			g_strstrip(lines[i]);
+			if(lines[i]!=0)g_strstrip(lines[i]);
 			while((lines[i] != NULL) && (lines[i][0] != '[')){
 				if(strncmp(VTFALL, lines[i], strlen(VTFALL)) == 0){
 					ret->t_fall_ms = g_ascii_strtoll(&lines[i][strlen(VTFALL)], NULL, 10);
@@ -286,12 +325,12 @@ TFile* Read_File(const char *path){
 				};
 
 				i++;
-				g_strstrip(lines[i]);
+				if(lines[i]!=0)g_strstrip(lines[i]);
 			};
 		} else {
 			//we throw away unknown line
 			i++;
-			g_strstrip(lines[i]);
+			if(lines[i]!=0)g_strstrip(lines[i]);
 		}
 	}
 	g_strfreev(lines);
