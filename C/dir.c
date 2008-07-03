@@ -6,6 +6,7 @@
 int Add_File(TDir *dir, const gchar *filepath, const gchar *filename){
 	if(dir->nfiles + 1 > dir->filesalloc){
 		dir->filesalloc *= 2;
+		dir->filesalloc += 1;
 		dir->files = realloc(dir->files, sizeof(TFile *)*dir->filesalloc); //TODO: check return value
 	};
 	dir->files[dir->nfiles] = Read_File(filepath);
@@ -31,6 +32,8 @@ TDir * Read_Dir(char *path){
 		g_free(filepath);
 	}
 	//TODO: statistics
+	rval->path = calloc(strlen(path)+1, sizeof(char));
+	strcpy(rval->path, path);
 	return rval;
 }
 
