@@ -551,3 +551,39 @@ int Analyze_File(TFile *f){
 	
 	return 0;
 }
+
+
+#define EXPORT_ROWS 2000 //MAGIC NUMBER
+void ExportData(TFile *f,const char *path){
+	FILE *fp;
+	int i;
+	int step;
+
+	fp = fopen(path, "w");
+	if(fp == NULL) return;
+
+
+	if(f->has_a){
+		step = f->length_a/EXPORT_ROWS;
+		if(f->has_b){
+			// A && B
+			for(i = 0; i<f->length_a && i<f->length_b; i+=step){
+				fprintf(fp,"%u\t%u\n", f->channel_a[i], f->channel_b[i]);
+			};
+		}else{
+			// A && !B
+			for(i = 0; i<f->length_a ; i+=step){
+				fprintf(fp,"%u\n", f->channel_a[i]);
+			};
+		};
+	}else{
+		if(f->has_b){
+			// !A && B
+			step = f->length_b/EXPORT_ROWS;
+			for(i = 0;  i<f->length_b; i+=step){
+				fprintf(fp,"%u\n", f->channel_b[i]);
+			};
+		};
+	};
+	fclose(fp);
+};

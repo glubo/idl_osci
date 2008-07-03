@@ -47,5 +47,6 @@ typedef struct{
 TFile * Read_File(const char *path);
 int	Is_Data_File(char *path);
 void Destroy_File(TFile *file);
+void ExportData(TFile *f, const char *path);
 
 #endif
