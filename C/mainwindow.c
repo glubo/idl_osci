@@ -1,11 +1,18 @@
+#define _GNU_SOURCE 1
 #include <gtk/gtk.h>
 #include "file.h"
+#include "dir.h"
+#include <unistd.h>
+#include <stdlib.h>
 
-GtkWidget *window;
-GtkWidget *chooser;
-GtkWidget *StartSliderA;
-GtkWidget *StopSliderA;
-GtkWidget *DatafileList;
+GtkWidget *window=0;
+GtkWidget *chooser=0;
+GtkWidget *StartSliderA=0;
+GtkWidget *StopSliderA=0;
+GtkWidget *DatafileList=0;
+GtkWidget *DataView=0;
+
+TDir *g_dir=0;
 
 enum
 {
@@ -14,23 +21,85 @@ enum
   NUM_COLS
 } ;
 
+void Plot(TFile *f){
+	char *pwd;
+	FILE *fp;
+
+	pwd = get_current_dir_name();
+	chdir("/tmp/plot");
+	fp = fopen("plot", "w");
+	if(f->has_a && f->has_b){
+			fprintf(fp, "set terminal png\nset output 'tmp.png'\nplot 'data.txt' using 0:1 with lines title 'A', 'data.txt' using 0:2 with lines title 'B'\nset output");
+	}else{
+		if(f->has_a){
+			fprintf(fp, "set terminal png\nset output 'tmp.png'\nplot 'data.txt' using 0:1 with lines title 'A'\nset output");
+		}else if(f->has_b){
+			fprintf(fp, "set terminal png\nset output 'tmp.png'\nplot 'data.txt' using 0:1 with lines title 'B'\nset output");
+		};
+	};
+	fclose(fp);
+	
+	system("gnuplot plot");
+	chdir(pwd);
+	free(pwd);
+}
+
+void RegeneratePlot(){
+	GtkTreeSelection *selection;
+  GtkTreeModel     *model;
+  GtkTreeIter       iter;
+  guint		id;
+
+
+  /* This will only work in single or browse selection mode! */
+
+  selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(DatafileList));
+  if (gtk_tree_selection_get_selected(selection, &model, &iter))
+  {
+
+    gtk_tree_model_get (model, &iter, COL_ID, &id, -1);
+
+    g_print ("selected row is: %u\n", id);
+	 g_mkdir_with_parents("/tmp/plot", 0777);
+	 ExportData(g_dir->files[id], "/tmp/plot/data.txt");
+	 Plot(g_dir->files[id]);
+	 gtk_image_set_from_file(GTK_IMAGE(DataView), "/tmp/plot/tmp.png");
+  }
+
+	
+}
+
+gchar *SeparateFilename(gchar *path){
+	gchar **set=0;
+	gchar *ret=0;
+	int i=0;
+	set = g_strsplit(path, G_DIR_SEPARATOR_S, 0);
+	if(set[0] == 0){
+		return 0;
+	};
+	while(set[i+1] != 0){
+		i++;
+	};
+	ret = g_strdup(set[i]);
+	g_strfreev(set);
+	return ret;
+}
+
 void Load_Dir(gchar *path){
-	GDir *dir;
-	const gchar *filename;
-	gchar *filepath;
+	int i;
+	gchar *filename;
 	GtkListStore *model;
 	GtkTreeIter iter;
 
 	model = GTK_LIST_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(DatafileList)));
 	gtk_list_store_clear(model);
-	dir = g_dir_open(path, 0, 0);
-	while((filename = g_dir_read_name(dir)) !=NULL){
-		filepath = g_strjoin(G_DIR_SEPARATOR_S, path, filename, NULL);
-		if(Is_Data_File(filepath)){
-			gtk_list_store_append(model, &iter);
-			gtk_list_store_set(model, &iter, COL_NAME, filename, -1);
-		};
-		g_free(filepath);
+	g_dir = Read_Dir(path);
+	for(i=0; i<g_dir->nfiles; i++){
+		filename = SeparateFilename(g_dir->files[i]->path);
+		gtk_list_store_append(model, &iter);
+		gtk_list_store_set(model, &iter, COL_NAME, filename, -1);
+		gtk_list_store_set(model, &iter, COL_ID, i, -1);
+		g_free(filename);
 	}
 }
 
@@ -46,6 +115,10 @@ static void StartSliderA_changed( GtkRange *range, gpointer data){
 	int start;
 	start = gtk_range_get_value(range);
 	g_print("StartSliderA: %d\n", start);
+}
+
+static void DatafileList_cursor_changed(GtkTreeView *tree_view, gpointer user_data){
+	RegeneratePlot();
 }
 
 static gboolean delete_event( GtkWidget *widget,
@@ -154,10 +227,14 @@ int main( int   argc,
 	g_signal_connect (G_OBJECT(StartSliderA), "value_changed", G_CALLBACK(StartSliderA_changed), 0);
 
 	DatafileList = create_datafiles_view_and_model();
+	g_signal_connect (G_OBJECT(DatafileList), "cursor_changed", G_CALLBACK(DatafileList_cursor_changed), 0);
 
 	gtk_box_pack_start (GTK_BOX(leftvbox), DatafileList, 0, 0, 0);
 	gtk_box_pack_start (GTK_BOX(leftvbox), StartSliderA, 0, 0, 0);
 	gtk_box_pack_start (GTK_BOX(leftvbox), StopSliderA, 0, 0, 0);
+
+	DataView = gtk_image_new_from_file("/tmp/plot/tmp.png");
+	gtk_box_pack_start (GTK_BOX(leftvbox), DataView, 1, 1, 0);
 
 
 	/* This is called in all GTK applications. Arguments are parsed
