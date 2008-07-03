@@ -30,9 +30,11 @@ typedef struct{
 	double R1_A;
 	double R2_A;
 	double R3_A;
+	double R4_A;
 	double R1_B;
 	double R2_B;
 	double R3_B;
+	double R4_B;
 	int had_t_and_peak;
 	double t_fall_ms;
 	double peak_A_C;

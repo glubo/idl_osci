@@ -9,6 +9,8 @@
 	#define g_ascii_strtoll strtoll
 #endif
 
+int Analyze_File(TFile *f);
+
 void Destroy_File(TFile *file){
 	dprintf("Destroy_File\n");
 	if(!file) return;
@@ -48,9 +50,11 @@ void Destroy_File(TFile *file){
 #define VR1A "R1A="
 #define VR2A "R2A="
 #define VR3A "R3A="
+#define VR4A "R4A="
 #define VR1B "R1B="
 #define VR2B "R2B="
 #define VR3B "R3B="
+#define VR4B "R4B="
 #define VTFALL "T_Fall_ms="
 #define VPEAKA "Peak_A_C="
 #define VPEAKB "Peak_B_C="
@@ -233,6 +237,9 @@ TFile* Read_File(const char *path){
 				}else if(strncmp(VR3A, lines[i], strlen(VR3A)) == 0){
 					ret->R3_A = g_ascii_strtoll(&lines[i][strlen(VR3A)], NULL, 10);
 					dprintf("Read_File: R3_A = %lf\n", ret->R3_A);
+				}else if(strncmp(VR4A, lines[i], strlen(VR4A)) == 0){
+					ret->R4_A = g_ascii_strtoll(&lines[i][strlen(VR4A)], NULL, 10);
+					dprintf("Read_File: R4_A = %lf\n", ret->R4_A);
 				}else if(strncmp(VR1B, lines[i], strlen(VR1B)) == 0){
 					ret->R1_B = g_ascii_strtoll(&lines[i][strlen(VR1B)], NULL, 10);
 					dprintf("Read_File: R1_B = %lf\n", ret->R1_B);
@@ -242,6 +249,9 @@ TFile* Read_File(const char *path){
 				}else if(strncmp(VR3B, lines[i], strlen(VR3B)) == 0){
 					ret->R3_B = g_ascii_strtoll(&lines[i][strlen(VR3B)], NULL, 10);
 					dprintf("Read_File: R3_B = %lf\n", ret->R3_B);
+				}else if(strncmp(VR4B, lines[i], strlen(VR4B)) == 0){
+					ret->R4_B = g_ascii_strtoll(&lines[i][strlen(VR4B)], NULL, 10);
+					dprintf("Read_File: R4_B = %lf\n", ret->R4_B);
 				};
 
 				i++;
@@ -277,6 +287,7 @@ TFile* Read_File(const char *path){
 		}
 	}
 	g_strfreev(lines);
+	Analyze_File(ret);
 
 	
 	EXITREADFILE;
@@ -333,9 +344,11 @@ int Write_File(TFile *file, char *path, int force){ //on error returns non-zero
 		if(fprintf(fp, "%s%lf\r\n",VR1A, file->R1_A)<0) error=-2;
 		if(fprintf(fp, "%s%lf\r\n",VR2A, file->R2_A)<0) error=-2;
 		if(fprintf(fp, "%s%lf\r\n",VR3A, file->R3_A)<0) error=-2;
+		if(fprintf(fp, "%s%lf\r\n",VR4A, file->R4_A)<0) error=-2;
 		if(fprintf(fp, "%s%lf\r\n",VR1B, file->R1_B)<0) error=-2;
 		if(fprintf(fp, "%s%lf\r\n",VR2B, file->R2_B)<0) error=-2;
 		if(fprintf(fp, "%s%lf\r\n",VR3B, file->R3_B)<0) error=-2;
+		if(fprintf(fp, "%s%lf\r\n",VR4B, file->R4_B)<0) error=-2;
 	};
 	if(file->had_t_and_peak || force){
 		if(fprintf(fp, "%s\r\n", STANDPEAK)<0) error=-2;
@@ -411,10 +424,31 @@ void Find_Min_Max(unsigned char *data, int lenght, int *min_pos, int *max_pos){
 	};
 }
 
+void Guess_start_stop(int t_peak_max, int peak_pos, int noiseperiod, int max_t, int *start, int *stop){
+	int length;
+	*start  = peak_pos - t_peak_max*0.25; // MAGIC NUMBER
+	if(*start < 0) *start=0;
+	length = noiseperiod*ceil((double)t_peak_max/(double)noiseperiod);
+	*stop = length + *start;
+	if(*stop >= max_t) *stop = max_t-1;
+}
+
+void Guess_R(TFile *f){
+	if(f == NULL) return;
+	f->R1_A = 10e6;
+	f->R1_B = 10e6;
+	f->R2_A = 7e9;
+	f->R2_B = 6.8e9;
+	f->R3_A = 180e3;
+	f->R3_B = 179e3;
+	f->R4_A = 40.1e3;
+	f->R4_B = 39e3;
+}
+
 int Analyze_File(TFile *f){
 	int min_A_pos, max_A_pos;
 	int min_max_A;
-	int min_B_pos, max_B_pos;
+	//int min_B_pos, max_B_pos;
 	int t_peak_max;
 	int noiseperiod = 1;
 
@@ -426,7 +460,7 @@ int Analyze_File(TFile *f){
 			f->negative = 0;
 		};
 		min_max_A = abs(max_A_pos-min_A_pos);
-		t_peak_max = min_max_A * 0.95; //empiricky odhadnuta maximalni delka peaku
+		t_peak_max = min_max_A * 0.95; //empiricky odhadnuta maximalni delka peaku MAGIC NUMBER
 		t_peak_max = noiseperiod * ceil((double)t_peak_max/(double)noiseperiod); //zaokrouhlime nahoru na periodu sumu
 
 		f->start_noise = (f->negative?min_A_pos:max_A_pos) + t_peak_max;
@@ -437,7 +471,17 @@ int Analyze_File(TFile *f){
 		};
 		
 		f->zero_a = integrate(f->channel_a, f->start_noise, f->length_a)/(f->length_a-f->start_noise);
-	}
+		Guess_start_stop(t_peak_max, max_A_pos, noiseperiod, f->length_a, &f->start_A, &f->stop_A);
+		Guess_start_stop(t_peak_max, min_A_pos, noiseperiod, f->length_a, &f->start_B, &f->stop_B);
+	};
+
+	if(!f->had_R){
+		Guess_R(f);
+	};
+
+	if(f->has_a){
+		
+	};
 	
 	return 0;
 }
