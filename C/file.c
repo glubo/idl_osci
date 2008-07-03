@@ -295,6 +295,8 @@ TFile* Read_File(const char *path){
 		}
 	}
 	g_strfreev(lines);
+	ret->path = calloc(strlen(path)+1, sizeof(char));
+	strcpy(ret->path, path);
 	Analyze_File(ret);
 
 	
