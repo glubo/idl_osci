@@ -25,7 +25,8 @@ typedef struct{
 	int stop_B;
 	int start_C;
 	int stop_C;
-	int start_noise;
+	int start_noise_a;
+	int start_noise_b;
 	int had_R;
 	double R1_A;
 	double R2_A;

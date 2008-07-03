@@ -47,6 +47,8 @@ void Destroy_File(TFile *file){
 #define VSTOPB "STOPB="
 #define VSTARTC "STARTC="
 #define VSTOPC "STOPC="
+#define VSTARTNOISEA "STARTNOISEA="
+#define VSTARTNOISEB "STARTNOISEB="
 #define VR1A "R1A="
 #define VR2A "R2A="
 #define VR3A "R3A="
@@ -200,6 +202,12 @@ TFile* Read_File(const char *path){
 				}else if(strncmp(VSTOPC, lines[i], strlen(VSTOPC)) == 0){
 					ret->stop_C = g_ascii_strtoll(&lines[i][strlen(VSTOPC)], NULL, 10);
 					dprintf("Read_File: stop_C = %d\n", ret->stop_C);
+				}else if(strncmp(VSTARTNOISEA, lines[i], strlen(VSTARTNOISEA)) == 0){
+					ret->start_noise_a = g_ascii_strtoll(&lines[i][strlen(VSTARTNOISEA)], NULL, 10);
+					dprintf("Read_File: start_noise_a = %d\n", ret->start_noise_a);
+				}else if(strncmp(VSTARTNOISEB, lines[i], strlen(VSTARTNOISEB)) == 0){
+					ret->start_noise_b = g_ascii_strtoll(&lines[i][strlen(VSTARTNOISEB)], NULL, 10);
+					dprintf("Read_File: start_noise_b = %d\n", ret->start_noise_b);
 				};
 
 				i++;
@@ -337,6 +345,8 @@ int Write_File(TFile *file, char *path, int force){ //on error returns non-zero
 		if(fprintf(fp, "%s%d\r\n",VSTOPB, file->stop_B)<0) error=-2;
 		if(fprintf(fp, "%s%d\r\n",VSTARTC, file->start_C)<0) error=-2;
 		if(fprintf(fp, "%s%d\r\n",VSTOPC, file->stop_C)<0) error=-2;
+		if(fprintf(fp, "%s%d\r\n",VSTARTNOISEA, file->start_noise_a)<0) error=-2;
+		if(fprintf(fp, "%s%d\r\n",VSTARTNOISEB, file->start_noise_b)<0) error=-2;
 	};
 
 	if(file->had_R || force){
@@ -448,7 +458,7 @@ void Guess_R(TFile *f){
 int Analyze_File(TFile *f){
 	int min_A_pos, max_A_pos;
 	int min_max_A;
-	//int min_B_pos, max_B_pos;
+	int min_B_pos, max_B_pos;
 	int t_peak_max;
 	int noiseperiod = 1;
 
@@ -463,14 +473,29 @@ int Analyze_File(TFile *f){
 		t_peak_max = min_max_A * 0.95; //empiricky odhadnuta maximalni delka peaku MAGIC NUMBER
 		t_peak_max = noiseperiod * ceil((double)t_peak_max/(double)noiseperiod); //zaokrouhlime nahoru na periodu sumu
 
-		f->start_noise = (f->negative?min_A_pos:max_A_pos) + t_peak_max;
-		f->start_noise = f->length_a - noiseperiod * floor((double)(f->length_a - f->start_noise)/(double)noiseperiod); //zaokrouhlime dolu delku sumu na periody sumu
-		if(f->start_noise > f->length_a){
-			fprintf(stderr, "Analyze_File: start_noise > lenght_a\n");
+		f->start_noise_a = (f->negative?min_A_pos:max_A_pos) + t_peak_max;
+		f->start_noise_a = f->length_a - noiseperiod * floor((double)(f->length_a - f->start_noise_a)/(double)noiseperiod); //zaokrouhlime dolu delku sumu na periody sumu
+		if(f->start_noise_a > f->length_a){
+			fprintf(stderr, "Analyze_File: start_noise_a > lenght_a\n");
 			return -1;
 		};
 		
-		f->zero_a = integrate(f->channel_a, f->start_noise, f->length_a)/(f->length_a-f->start_noise);
+		f->zero_a = integrate(f->channel_a, f->start_noise_a, f->length_a)/(f->length_a-f->start_noise_a);
+		Guess_start_stop(t_peak_max, max_A_pos, noiseperiod, f->length_a, &f->start_A, &f->stop_A);
+		Guess_start_stop(t_peak_max, min_A_pos, noiseperiod, f->length_a, &f->start_B, &f->stop_B);
+	};
+
+	if(f->has_b && !f->had_start_stop){
+		Find_Min_Max(f->channel_b, f->length_b, &min_B_pos, &max_B_pos);
+
+		f->start_noise_a = (f->negative?max_A_pos:min_A_pos) + t_peak_max;
+		f->start_noise_a = f->length_a - noiseperiod * floor((double)(f->length_a - f->start_noise_a)/(double)noiseperiod); //zaokrouhlime dolu delku sumu na periody sumu
+		if(f->start_noise_a > f->length_a){
+			fprintf(stderr, "Analyze_File: start_noise_a > lenght_a\n");
+			return -1;
+		};
+		
+		f->zero_a = integrate(f->channel_a, f->start_noise_a, f->length_a)/(f->length_a-f->start_noise_a);
 		Guess_start_stop(t_peak_max, max_A_pos, noiseperiod, f->length_a, &f->start_A, &f->stop_A);
 		Guess_start_stop(t_peak_max, min_A_pos, noiseperiod, f->length_a, &f->start_B, &f->stop_B);
 	};
