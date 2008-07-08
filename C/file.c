@@ -1,5 +1,6 @@
 #include "dprintf.h"
 #include "file.h"
+#include "conversion.h"
 #include <glib.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -529,17 +530,24 @@ int Analyze_File(TFile *f){
 	if(f->has_b && !f->had_start_stop){
 		Find_Min_Max(f->channel_b, f->length_b, &min_B_pos, &max_B_pos);
 
-		f->start_noise_a = (f->negative?max_A_pos:min_A_pos) + t_peak_max;
-		f->start_noise_a = f->length_a - noiseperiod * floor((double)(f->length_a - f->start_noise_a)/(double)noiseperiod); //zaokrouhlime dolu delku sumu na periody sumu
-		if(f->start_noise_a > f->length_a){
-			fprintf(stderr, "Analyze_File: start_noise_a > lenght_a\n");
+		f->start_noise_b = (f->negative?max_B_pos:min_B_pos) + t_peak_max;
+		f->start_noise_b = f->length_b - noiseperiod * floor((double)(f->length_b - f->start_noise_b)/(double)noiseperiod); //zaokrouhlime dolu delku sumu na periody sumu
+		if(f->start_noise_b > f->length_b){
+			fprintf(stderr, "Analyze_File: start_noise_b > lenght_b\n");
 			return -1;
 		};
 		
-		f->zero_a = integrate(f->channel_a, f->start_noise_a, f->length_a)/(f->length_a-f->start_noise_a);
-		Guess_start_stop(t_peak_max, max_A_pos, noiseperiod, f->length_a, &f->start_A, &f->stop_A);
-		Guess_start_stop(t_peak_max, min_A_pos, noiseperiod, f->length_a, &f->start_B, &f->stop_B);
+		f->zero_b = integrate(f->channel_a, f->start_noise_b, f->length_b)/(f->length_b-f->start_noise_b);
+		Guess_start_stop(t_peak_max, (f->negative?max_B_pos:min_B_pos), noiseperiod, f->length_b, &f->start_C, &f->stop_C);
 	};
+	
+	if(f->has_a){
+		f->peak_A_C = ItoV(f->range_a, Itos(f->timebase, integrate(f->channel_a, f->start_A, f->stop_A)));
+		f->peak_B_C = ItoV(f->range_a, Itos(f->timebase, integrate(f->channel_a, f->start_B, f->stop_B)));
+	}
+	if(f->has_b){
+		f->peak_C_C = ItoV(f->range_b, Itos(f->timebase, integrate(f->channel_b, f->start_C, f->stop_C)));
+	}
 
 	if(!f->had_R){
 		Guess_R(f);
@@ -558,22 +566,27 @@ void ExportData(TFile *f,const char *path){
 	FILE *fp;
 	int i;
 	int step;
+	double sps,Vpsa, Vpsb;
 
+	
 	fp = fopen(path, "w");
 	if(fp == NULL) return;
 
+	sps = Itos(f->timebase, 1);
+	Vpsa = ItoV(f->range_a, 1);
+	Vpsb = ItoV(f->range_b, 1);
 
 	if(f->has_a){
 		step = f->length_a/EXPORT_ROWS;
 		if(f->has_b){
 			// A && B
 			for(i = 0; i<f->length_a && i<f->length_b; i+=step){
-				fprintf(fp,"%u\t%u\n", f->channel_a[i], f->channel_b[i]);
+				fprintf(fp,"%lf\t%lf\t%lf\n",sps*i, Vpsa*(f->channel_a[i]-f->zero_a), Vpsb*(f->channel_b[i]-f->zero_b));
 			};
 		}else{
 			// A && !B
 			for(i = 0; i<f->length_a ; i+=step){
-				fprintf(fp,"%u\n", f->channel_a[i]);
+				fprintf(fp,"%lf\t%lf\n", sps*i, Vpsa*(f->channel_a[i]-f->zero_a));
 			};
 		};
 	}else{
@@ -581,7 +594,7 @@ void ExportData(TFile *f,const char *path){
 			// !A && B
 			step = f->length_b/EXPORT_ROWS;
 			for(i = 0;  i<f->length_b; i+=step){
-				fprintf(fp,"%u\n", f->channel_b[i]);
+				fprintf(fp,"%lf\t%lf\n", sps*i, Vpsb*(f->channel_b[i]-f->zero_b));
 			};
 		};
 	};
