@@ -18,6 +18,9 @@ enum
 {
   COL_NAME = 0,
   COL_ID,
+  COL_A,
+  COL_B,
+  COL_C,
   NUM_COLS
 } ;
 
@@ -99,6 +102,9 @@ void Load_Dir(gchar *path){
 		gtk_list_store_append(model, &iter);
 		gtk_list_store_set(model, &iter, COL_NAME, filename, -1);
 		gtk_list_store_set(model, &iter, COL_ID, i, -1);
+		gtk_list_store_set(model, &iter, COL_A, (int)g_dir->files[i]->peak_A_C, -1);
+		gtk_list_store_set(model, &iter, COL_B, (int)g_dir->files[i]->peak_B_C, -1);
+		gtk_list_store_set(model, &iter, COL_C, (int)g_dir->files[i]->peak_C_C, -1);
 		g_free(filename);
 	}
 }
@@ -152,7 +158,7 @@ create_datafiles_model (void)
 {
   GtkListStore  *store;
   
-  store = gtk_list_store_new (NUM_COLS, G_TYPE_STRING, G_TYPE_UINT);
+  store = gtk_list_store_new (NUM_COLS, G_TYPE_STRING, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_UINT);
 
   return GTK_TREE_MODEL (store);
 }
@@ -182,6 +188,28 @@ create_datafiles_view_and_model (void)
                                                renderer,
                                                "text", COL_NAME,
                                                NULL);
+  renderer = gtk_cell_renderer_text_new ();
+  gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW (view),
+                                               -1,      
+                                               "A",  
+                                               renderer,
+                                               "text", COL_A,
+                                               NULL);
+  renderer = gtk_cell_renderer_text_new ();
+  gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW (view),
+                                               -1,      
+                                               "B",  
+                                               renderer,
+                                               "text", COL_B,
+                                               NULL);
+  renderer = gtk_cell_renderer_text_new ();
+  gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW (view),
+                                               -1,      
+                                               "C",  
+                                               renderer,
+                                               "text", COL_C,
+                                               NULL);
+
 
 
   model = create_datafiles_model ();
