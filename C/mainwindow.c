@@ -28,16 +28,17 @@ void Plot(TFile *f){
 	char *pwd;
 	FILE *fp;
 
+	ExportData(f, "/tmp/plot/data.txt");
 	pwd = get_current_dir_name();
 	chdir("/tmp/plot");
 	fp = fopen("plot", "w");
 	if(f->has_a && f->has_b){
-			fprintf(fp, "set terminal png\nset output 'tmp.png'\nplot 'data.txt' using 0:1 with lines title 'A', 'data.txt' using 0:2 with lines title 'B'\nset output");
+			fprintf(fp, "set terminal png\nset output 'tmp.png'\nplot 'data.txt' using 1:2 with lines title 'A', 'data.txt' using 1:3 with lines title 'B'\nset output");
 	}else{
 		if(f->has_a){
-			fprintf(fp, "set terminal png\nset output 'tmp.png'\nplot 'data.txt' using 0:1 with lines title 'A'\nset output");
+			fprintf(fp, "set terminal png\nset output 'tmp.png'\nplot 'data.txt' using 1:2 with lines title 'A'\nset output");
 		}else if(f->has_b){
-			fprintf(fp, "set terminal png\nset output 'tmp.png'\nplot 'data.txt' using 0:1 with lines title 'B'\nset output");
+			fprintf(fp, "set terminal png\nset output 'tmp.png'\nplot 'data.txt' using 1:2 with lines title 'B'\nset output");
 		};
 	};
 	fclose(fp);
@@ -64,7 +65,6 @@ void RegeneratePlot(){
 
     g_print ("selected row is: %u\n", id);
 	 g_mkdir_with_parents("/tmp/plot", 0777);
-	 ExportData(g_dir->files[id], "/tmp/plot/data.txt");
 	 Plot(g_dir->files[id]);
 	 gtk_image_set_from_file(GTK_IMAGE(DataView), "/tmp/plot/tmp.png");
   }
@@ -93,6 +93,7 @@ void Load_Dir(gchar *path){
 	gchar *filename;
 	GtkListStore *model;
 	GtkTreeIter iter;
+	gchar *buf;
 
 	model = GTK_LIST_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(DatafileList)));
 	gtk_list_store_clear(model);
@@ -102,9 +103,15 @@ void Load_Dir(gchar *path){
 		gtk_list_store_append(model, &iter);
 		gtk_list_store_set(model, &iter, COL_NAME, filename, -1);
 		gtk_list_store_set(model, &iter, COL_ID, i, -1);
-		gtk_list_store_set(model, &iter, COL_A, (int)g_dir->files[i]->peak_A_C, -1);
-		gtk_list_store_set(model, &iter, COL_B, (int)g_dir->files[i]->peak_B_C, -1);
-		gtk_list_store_set(model, &iter, COL_C, (int)g_dir->files[i]->peak_C_C, -1);
+		buf =  g_strdup_printf("%le", g_dir->files[i]->peak_A_C);
+		gtk_list_store_set(model, &iter, COL_A, buf, -1);
+		g_free(buf);
+		buf =  g_strdup_printf("%le", g_dir->files[i]->peak_B_C);
+		gtk_list_store_set(model, &iter, COL_B, buf, -1);
+		g_free(buf);
+		buf =  g_strdup_printf("%le", g_dir->files[i]->peak_C_C);
+		gtk_list_store_set(model, &iter, COL_C, buf, -1);
+		g_free(buf);
 		g_free(filename);
 	}
 }
@@ -158,7 +165,7 @@ create_datafiles_model (void)
 {
   GtkListStore  *store;
   
-  store = gtk_list_store_new (NUM_COLS, G_TYPE_STRING, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_UINT);
+  store = gtk_list_store_new (NUM_COLS, G_TYPE_STRING, G_TYPE_UINT, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
 
   return GTK_TREE_MODEL (store);
 }

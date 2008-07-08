@@ -541,22 +541,18 @@ int Analyze_File(TFile *f){
 		Guess_start_stop(t_peak_max, (f->negative?max_B_pos:min_B_pos), noiseperiod, f->length_b, &f->start_C, &f->stop_C);
 	};
 	
-	if(f->has_a){
-		f->peak_A_C = ItoV(f->range_a, Itos(f->timebase, integrate(f->channel_a, f->start_A, f->stop_A)));
-		f->peak_B_C = ItoV(f->range_a, Itos(f->timebase, integrate(f->channel_a, f->start_B, f->stop_B)));
-	}
-	if(f->has_b){
-		f->peak_C_C = ItoV(f->range_b, Itos(f->timebase, integrate(f->channel_b, f->start_C, f->stop_C)));
-	}
-
 	if(!f->had_R){
 		Guess_R(f);
 	};
 
 	if(f->has_a){
-		
-	};
-	
+		f->peak_A_C = ItoC(f, 'a', integrate(f->channel_a, f->start_A, f->stop_A));
+		f->peak_B_C = ItoC(f, 'a', integrate(f->channel_a, f->start_B, f->stop_B));
+	}
+	if(f->has_b){
+		f->peak_C_C = ItoC(f, 'b', integrate(f->channel_b, f->start_C, f->stop_C));
+	}
+
 	return 0;
 }
 
@@ -566,27 +562,27 @@ void ExportData(TFile *f,const char *path){
 	FILE *fp;
 	int i;
 	int step;
-	double sps,Vpsa, Vpsb;
+	double sps,Apsa, Apsb;
 
 	
 	fp = fopen(path, "w");
 	if(fp == NULL) return;
 
 	sps = Itos(f->timebase, 1);
-	Vpsa = ItoV(f->range_a, 1);
-	Vpsb = ItoV(f->range_b, 1);
+	Apsa = ItoA(f, 'a', 1);
+	Apsb = ItoA(f, 'b', 1);
 
 	if(f->has_a){
 		step = f->length_a/EXPORT_ROWS;
 		if(f->has_b){
 			// A && B
 			for(i = 0; i<f->length_a && i<f->length_b; i+=step){
-				fprintf(fp,"%lf\t%lf\t%lf\n",sps*i, Vpsa*(f->channel_a[i]-f->zero_a), Vpsb*(f->channel_b[i]-f->zero_b));
+				fprintf(fp,"%le\t%le\t%le\n",sps*i, Apsa*(f->channel_a[i]-f->zero_a), Apsb*(f->channel_b[i]-f->zero_b));
 			};
 		}else{
 			// A && !B
 			for(i = 0; i<f->length_a ; i+=step){
-				fprintf(fp,"%lf\t%lf\n", sps*i, Vpsa*(f->channel_a[i]-f->zero_a));
+				fprintf(fp,"%le\t%le\n", sps*i, Apsa*(f->channel_a[i]-f->zero_a));
 			};
 		};
 	}else{
@@ -594,7 +590,7 @@ void ExportData(TFile *f,const char *path){
 			// !A && B
 			step = f->length_b/EXPORT_ROWS;
 			for(i = 0;  i<f->length_b; i+=step){
-				fprintf(fp,"%lf\t%lf\n", sps*i, Vpsb*(f->channel_b[i]-f->zero_b));
+				fprintf(fp,"%le\t%le\n", sps*i, Apsb*(f->channel_b[i]-f->zero_b));
 			};
 		};
 	};
