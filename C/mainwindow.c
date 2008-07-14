@@ -2,6 +2,7 @@
 #include <gtk/gtk.h>
 #include "file.h"
 #include "dir.h"
+#include "conversion.h"
 #include <unistd.h>
 #include <stdlib.h>
 
@@ -33,10 +34,24 @@ void Plot(TFile *f){
 	chdir("/tmp/plot");
 	fp = fopen("plot", "w");
 	if(f->has_a && f->has_b){
-			fprintf(fp, "set terminal png\nset output 'tmp.png'\nplot 'data.txt' using 1:2 with lines title 'A', 'data.txt' using 1:3 with lines title 'B'\nset output");
+			fprintf(fp, "set terminal png\nset output 'tmp.png'\n");
+			fprintf(fp, "set label \"start_A\" at %lf,0 rotate point lt 4 pt 1 ps 2 offset 0,0.5\n", Itos(f->timebase, f->start_A));
+			fprintf(fp, "set label \"stop_A\" at %lf,0 rotate point lt 4 pt 2 ps 2 offset 0,0.5\n", Itos(f->timebase, f->stop_A));
+			fprintf(fp, "set label \"start_B\" at %lf,0 rotate point lt 4 pt 1 ps 2 offset 0,0.5\n", Itos(f->timebase, f->start_B));
+			fprintf(fp, "set label \"stop_B\" at %lf,0 rotate point lt 4 pt 2 ps 2 offset 0,0.5\n", Itos(f->timebase, f->stop_B));
+			fprintf(fp, "set label \"start_C\" at %lf,0 rotate point lt 4 pt 1 ps 2 offset 0,0.5\n", Itos(f->timebase, f->start_C));
+			fprintf(fp, "set label \"stop_C\" at %lf,0 rotate point lt 4 pt 2 ps 2 offset 0,0.5\n", Itos(f->timebase, f->stop_C));
+			fprintf(fp, "plot 'data.txt' using 1:2 with lines title 'A', 'data.txt' using 1:3 with lines title 'B'\n");
+			fprintf(fp, "set output\n");
 	}else{
 		if(f->has_a){
-			fprintf(fp, "set terminal png\nset output 'tmp.png'\nplot 'data.txt' using 1:2 with lines title 'A'\nset output");
+			fprintf(fp, "set terminal png\nset output 'tmp.png'\n");
+			fprintf(fp, "set label \"start_A\" at %lf,0 rotate point lt 4 pt 1 ps 2 offset 0,0.5\n", Itos(f->timebase, f->start_A));
+			fprintf(fp, "set label \"stop_A\" at %lf,0 rotate point lt 4 pt 2 ps 2 offset 0,0.5\n", Itos(f->timebase, f->stop_A));
+			fprintf(fp, "set label \"start_B\" at %lf,0 rotate point lt 4 pt 1 ps 2 offset 0,0.5\n", Itos(f->timebase, f->start_B));
+			fprintf(fp, "set label \"stop_B\" at %lf,0 rotate point lt 4 pt 2 ps 2 offset 0,0.5\n", Itos(f->timebase, f->stop_B));
+			fprintf(fp, "plot 'data.txt' using 1:2 with lines title 'A'\n");
+			fprintf(fp, "set output\n");
 		}else if(f->has_b){
 			fprintf(fp, "set terminal png\nset output 'tmp.png'\nplot 'data.txt' using 1:2 with lines title 'B'\nset output");
 		};
@@ -242,6 +257,7 @@ int main( int   argc,
 	GtkWidget *frame1;
 	GtkWidget *frame2;
 	GtkWidget *leftvbox;
+	GtkWidget *listscroll;
 
 	gtk_init (&argc, &argv);
 	
@@ -261,10 +277,13 @@ int main( int   argc,
 	StopSliderA = gtk_hscale_new_with_range(0, 35536,1);
 	g_signal_connect (G_OBJECT(StartSliderA), "value_changed", G_CALLBACK(StartSliderA_changed), 0);
 
+
 	DatafileList = create_datafiles_view_and_model();
 	g_signal_connect (G_OBJECT(DatafileList), "cursor_changed", G_CALLBACK(DatafileList_cursor_changed), 0);
+	listscroll = gtk_scrolled_window_new(0,0);
+	gtk_container_add(GTK_CONTAINER(listscroll), DatafileList);
 
-	gtk_box_pack_start (GTK_BOX(leftvbox), DatafileList, 0, 0, 0);
+	gtk_box_pack_start (GTK_BOX(leftvbox), listscroll, 0, 0, 0);
 	gtk_box_pack_start (GTK_BOX(leftvbox), StartSliderA, 0, 0, 0);
 	gtk_box_pack_start (GTK_BOX(leftvbox), StopSliderA, 0, 0, 0);
 
