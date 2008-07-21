@@ -10,6 +10,10 @@ GtkWidget *window=0;
 GtkWidget *chooser=0;
 GtkWidget *StartSliderA=0;
 GtkWidget *StopSliderA=0;
+GtkWidget *StartSliderB=0;
+GtkWidget *StopSliderB=0;
+GtkWidget *StartSliderC=0;
+GtkWidget *StopSliderC=0;
 GtkWidget *DatafileList=0;
 GtkWidget *DataView=0;
 
@@ -139,11 +143,18 @@ static void DirChanged( GtkFileChooser *chooser, gpointer data){
 	g_free(Folder);
 }
 
-static void StartSliderA_changed( GtkRange *range, gpointer data){
+static void StartStopSlider_changed( GtkRange *range, gpointer data){
 	int start;
+	int sliderid;
+
+	sliderid = (int)data;
 	start = gtk_range_get_value(range);
-	g_print("StartSliderA: %d\n", start);
+	g_print("StartStopSlider[%d]: %d\n", sliderid, start);
 }
+
+void ModifyStartStopSlider(int sliderid, from, to, step){
+};
+
 
 static void DatafileList_cursor_changed(GtkTreeView *tree_view, gpointer user_data){
 	RegeneratePlot();
@@ -252,43 +263,65 @@ int main( int   argc,
           char *argv[] )
 {
 	/* GtkWidget is the storage type for widgets */
-	GtkWidget *notebook;
-	GtkWidget *hpaned;
+	GtkWidget *SelectXModifyNotebook;
+	GtkWidget *MasterHPaned;
+	GtkWidget *vpanedList;
 	GtkWidget *frame1;
 	GtkWidget *frame2;
-	GtkWidget *leftvbox;
-	GtkWidget *listscroll;
+	GtkWidget *rightvbox;
+	GtkWidget *ModifyFileVBox;
+	GtkWidget *FileSelectScroll;
 
 	gtk_init (&argc, &argv);
 	
-	hpaned = gtk_hpaned_new();
+	MasterHPaned = gtk_hpaned_new();
 	frame1 = gtk_frame_new (NULL);
 	frame2 = gtk_frame_new (NULL);
-	leftvbox = gtk_vbox_new (FALSE, 0);
+	SelectXModifyNotebook = gtk_notebook_new();
+	rightvbox = gtk_vbox_new (FALSE, 0);
+	ModifyFileVBox = gtk_vbox_new (FALSE, 0);
 	gtk_frame_set_shadow_type (GTK_FRAME (frame1), GTK_SHADOW_IN);
 	gtk_frame_set_shadow_type (GTK_FRAME (frame2), GTK_SHADOW_IN);
 
 
-	gtk_paned_pack1 (GTK_PANED (hpaned), frame1, FALSE, FALSE);
+	gtk_paned_pack1 (GTK_PANED (MasterHPaned), frame1, FALSE, FALSE);
 
-	gtk_paned_pack2 (GTK_PANED (hpaned), frame2, TRUE, FALSE);
+	gtk_paned_pack2 (GTK_PANED (MasterHPaned), frame2, TRUE, FALSE);
 
 	StartSliderA = gtk_hscale_new_with_range(0, 35536,1);
 	StopSliderA = gtk_hscale_new_with_range(0, 35536,1);
-	g_signal_connect (G_OBJECT(StartSliderA), "value_changed", G_CALLBACK(StartSliderA_changed), 0);
+	StartSliderB = gtk_hscale_new_with_range(0, 35536,1);
+	StopSliderB = gtk_hscale_new_with_range(0, 35536,1);
+	StartSliderC = gtk_hscale_new_with_range(0, 35536,1);
+	StopSliderC = gtk_hscale_new_with_range(0, 35536,1);
+	g_signal_connect (G_OBJECT(StartSliderA), "value_changed",  G_CALLBACK(StartStopSlider_changed), (gpointer)1);
+	g_signal_connect (G_OBJECT(StopSliderA), "value_changed",   G_CALLBACK(StartStopSlider_changed), (gpointer)2);
+	g_signal_connect (G_OBJECT(StartSliderB), "value_changed", G_CALLBACK(StartStopSlider_changed), (gpointer)3);
+	g_signal_connect (G_OBJECT(StopSliderB), "value_changed",  G_CALLBACK(StartStopSlider_changed), (gpointer)4);
+	g_signal_connect (G_OBJECT(StartSliderC), "value_changed", G_CALLBACK(StartStopSlider_changed), (gpointer)5);
+	g_signal_connect (G_OBJECT(StopSliderC), "value_changed",  G_CALLBACK(StartStopSlider_changed), (gpointer)6);
 
 
 	DatafileList = create_datafiles_view_and_model();
 	g_signal_connect (G_OBJECT(DatafileList), "cursor_changed", G_CALLBACK(DatafileList_cursor_changed), 0);
-	listscroll = gtk_scrolled_window_new(0,0);
-	gtk_container_add(GTK_CONTAINER(listscroll), DatafileList);
+	FileSelectScroll = gtk_scrolled_window_new(0,0);
+	gtk_container_add(GTK_CONTAINER(FileSelectScroll), DatafileList);
 
-	gtk_box_pack_start (GTK_BOX(leftvbox), listscroll, 0, 0, 0);
-	gtk_box_pack_start (GTK_BOX(leftvbox), StartSliderA, 0, 0, 0);
-	gtk_box_pack_start (GTK_BOX(leftvbox), StopSliderA, 0, 0, 0);
+	vpanedList = gtk_vpaned_new();
+	gtk_notebook_append_page(GTK_NOTEBOOK(SelectXModifyNotebook), FileSelectScroll, gtk_label_new("vyber"));
+	gtk_notebook_append_page(GTK_NOTEBOOK(SelectXModifyNotebook), ModifyFileVBox, gtk_label_new("uprava"));
+	gtk_paned_pack1 (GTK_PANED (vpanedList), SelectXModifyNotebook, TRUE, FALSE);
+	gtk_paned_pack2 (GTK_PANED (vpanedList), rightvbox, FALSE, FALSE);
+
+	gtk_box_pack_start (GTK_BOX(ModifyFileVBox), StartSliderA, 0, 0, 0);
+	gtk_box_pack_start (GTK_BOX(ModifyFileVBox), StopSliderA, 0, 0, 0);
+	gtk_box_pack_start (GTK_BOX(ModifyFileVBox), StartSliderB, 0, 0, 0);
+	gtk_box_pack_start (GTK_BOX(ModifyFileVBox), StopSliderB, 0, 0, 0);
+	gtk_box_pack_start (GTK_BOX(ModifyFileVBox), StartSliderC, 0, 0, 0);
+	gtk_box_pack_start (GTK_BOX(ModifyFileVBox), StopSliderC, 0, 0, 0);
 
 	DataView = gtk_image_new_from_file("/tmp/plot/tmp.png");
-	gtk_box_pack_start (GTK_BOX(leftvbox), DataView, 1, 1, 0);
+	gtk_box_pack_start (GTK_BOX(rightvbox), DataView, 1, 1, 0);
 
 
 	/* This is called in all GTK applications. Arguments are parsed
@@ -314,13 +347,11 @@ int main( int   argc,
 
 	chooser = gtk_file_chooser_widget_new(GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER);
 	g_signal_connect(G_OBJECT(chooser), "current-folder-changed", G_CALLBACK(DirChanged), NULL);
-	notebook = gtk_notebook_new();
 
-	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), hpaned, gtk_label_new("vyber"));
 	/* This packs the button into the window (a gtk container). */
 	gtk_container_add (GTK_CONTAINER (frame1), chooser);
-	gtk_container_add (GTK_CONTAINER (frame2), leftvbox);
-	gtk_container_add (GTK_CONTAINER (window), notebook);
+	gtk_container_add (GTK_CONTAINER (frame2), vpanedList);
+	gtk_container_add (GTK_CONTAINER (window), MasterHPaned);
 
 	/* The final step is to display this newly created widget. */
 
