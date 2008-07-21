@@ -16,6 +16,8 @@ GtkWidget *StartSliderC=0;
 GtkWidget *StopSliderC=0;
 GtkWidget *DatafileList=0;
 GtkWidget *DataView=0;
+int selectedid = 0;
+int filechanged = 0;
 
 TDir *g_dir=0;
 
@@ -68,27 +70,16 @@ void Plot(TFile *f){
 }
 
 void RegeneratePlot(){
-	GtkTreeSelection *selection;
-  GtkTreeModel     *model;
-  GtkTreeIter       iter;
-  guint		id;
+	guint		id;
+	id = selectedid;
+	g_mkdir_with_parents("/tmp/plot", 0777);
+	Plot(g_dir->files[id]);
+	gtk_image_set_from_file(GTK_IMAGE(DataView), "/tmp/plot/tmp.png");
 
 
-  /* This will only work in single or browse selection mode! */
+	/* This will only work in single or browse selection mode! */
 
-  selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(DatafileList));
-  if (gtk_tree_selection_get_selected(selection, &model, &iter))
-  {
 
-    gtk_tree_model_get (model, &iter, COL_ID, &id, -1);
-
-    g_print ("selected row is: %u\n", id);
-	 g_mkdir_with_parents("/tmp/plot", 0777);
-	 Plot(g_dir->files[id]);
-	 gtk_image_set_from_file(GTK_IMAGE(DataView), "/tmp/plot/tmp.png");
-  }
-
-	
 }
 
 gchar *SeparateFilename(gchar *path){
@@ -143,21 +134,80 @@ static void DirChanged( GtkFileChooser *chooser, gpointer data){
 	g_free(Folder);
 }
 
+static gboolean CheckFileChanged(gpointer *data){
+	int i;
+	if(filechanged == 0)
+		return 1;
+	
+	filechanged = 0;
+	
+	for(i = 0; i < g_dir->nfiles; i++){
+	//	Analyze_File(g_dir->files[i]);
+	}
+
+	RegeneratePlot();
+	return 1;
+}
+
 static void StartStopSlider_changed( GtkRange *range, gpointer data){
-	int start;
+	int *target;
 	int sliderid;
 
 	sliderid = (int)data;
-	start = gtk_range_get_value(range);
-	g_print("StartStopSlider[%d]: %d\n", sliderid, start);
+	switch(sliderid){
+		case 1: target = &g_dir->files[selectedid]->start_A; break;
+		case 2: target = &g_dir->files[selectedid]->stop_A; break;
+		case 3: target = &g_dir->files[selectedid]->start_B; break;
+		case 4: target = &g_dir->files[selectedid]->stop_B; break;
+		case 5: target = &g_dir->files[selectedid]->start_C; break;
+		case 6: target = &g_dir->files[selectedid]->stop_C; break;
+		default: fprintf(stderr, "StartStopSlider: unknow sliderid: %d\n", sliderid); return;
+	};
+	*target = gtk_range_get_value(range);
+	g_dir->files[selectedid]->had_start_stop = 1;
+	filechanged = 1;
 }
 
-void ModifyStartStopSlider(int sliderid, from, to, step){
+void ModifyStartStopSlider(int sliderid, int value, int from, int to, int step){
+	GtkRange *target;
+	switch(sliderid){
+		case 1: target = GTK_RANGE(StartSliderA); break;
+		case 2: target = GTK_RANGE(StopSliderA); break;
+		case 3: target = GTK_RANGE(StartSliderB); break;
+		case 4: target = GTK_RANGE(StopSliderB); break;
+		case 5: target = GTK_RANGE(StartSliderC); break;
+		case 6: target = GTK_RANGE(StopSliderC); break;
+		default: fprintf(stderr, "ModifyStartStopSlider: unknow sliderid: %d\n", sliderid);return;
+	};
+	gtk_range_set_range(target, from, to);
+	gtk_range_set_increments(target, step, step);
+	gtk_range_set_value(target, value);
 };
 
+void RegenerateModifyWidgets(){
+	ModifyStartStopSlider(1, g_dir->files[selectedid]->start_A, 0, g_dir->files[selectedid]->length_a, 1);
+	ModifyStartStopSlider(3, g_dir->files[selectedid]->start_B, 0, g_dir->files[selectedid]->length_a, 1);
+	ModifyStartStopSlider(5, g_dir->files[selectedid]->start_C, 0, g_dir->files[selectedid]->length_b, 1);
+	ModifyStartStopSlider(2, g_dir->files[selectedid]->stop_A, 0, g_dir->files[selectedid]->length_a, 1);
+	ModifyStartStopSlider(4, g_dir->files[selectedid]->stop_B, 0, g_dir->files[selectedid]->length_a, 1);
+	ModifyStartStopSlider(6, g_dir->files[selectedid]->stop_C, 0, g_dir->files[selectedid]->length_b, 1);
+}
 
 static void DatafileList_cursor_changed(GtkTreeView *tree_view, gpointer user_data){
+	GtkTreeSelection *selection;
+	GtkTreeModel     *model;
+	GtkTreeIter       iter;
+
+	selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(DatafileList));
+	if (gtk_tree_selection_get_selected(selection, &model, &iter))
+	{
+		gtk_tree_model_get (model, &iter, COL_ID, &selectedid, -1);
+
+		g_print ("selected row is: %u\n", selectedid);
+	}
+
 	RegeneratePlot();
+	RegenerateModifyWidgets();
 }
 
 static gboolean delete_event( GtkWidget *widget,
@@ -361,6 +411,7 @@ int main( int   argc,
 	/* All GTK applications must have a gtk_main(). Control ends here
 	* and waits for an event to occur (like a key press or
 	* mouse event). */
+	g_timeout_add(100, (GSourceFunc)CheckFileChanged, 0);
 	gtk_main ();
 
 	return 0;
