@@ -1,0 +1,53 @@
+cely soubor je binarni, double je 64-bitovy, int 32-bitovy
+
+na zacatku souboru je prvni udaj int, ktery rika pocet polozek hlavicky
+kazda cast hlavicky je tvorena trema intama, prvni je id typu polozky, druhy je
+offset v bytech, kde zacina dana cast, treti je id kanalu, ktereho se udaj
+tyka, pokud to ma smysl, jinak je nedefinovany a nezalezi na nem
+
+id polozek:
+1	data kanalu
+2	udaje o odporech zesilovace
+4	id pouziteho hw
+5	peak-kde je
+6	peak-predpocitane zpracovani peaku
+7	udaje o kondenzatorech zesilovace
+8	komentar
+
+
+
+polozky:
+1	data kanalu
+	double prevod-data-volty //(U = prevod-data-volty * data [V])
+	double poloha-nuly
+	double spS	//(t = spS * i [s])
+	int pocetsamplu
+	double samply[pocetsamplu]
+
+2	udaje o odporech zesilovace // v ohmech
+	double R1
+	double R2
+	double R3
+	double R4
+	double prevod-volty-ampery // I = prevod-volty-ampery * U; [U]=V, [I]=A
+
+4	id pouziteho hw
+	int id
+		1-stary zesilovac s elektrometrickym zesilovacem WSH
+		2-novejsi zesilovac s MAX
+
+5	peak-kde je
+	int id_peaku
+	int start // kolikaty sample zacina
+	int stop // kolikaty sample konci
+
+6	peak-predpocitane zpracovani peaku
+	int id_peaku
+	double naboj // naboj peaku v C
+
+7	udaje o kondenzatorech zesilovace
+	double C1
+	double C2
+8	komentar
+	int delka // [char]
+	char text[delka] //null-terminated string
