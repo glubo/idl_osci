@@ -457,6 +457,33 @@ unsigned long integrate(unsigned char *data, int start, int stop){
 	return tmp;
 }
 
+#define SAFETY_MARGIN 1024
+
+unsigned long moment2(unsigned char *data, int start, int stop){
+	int i;
+	unsigned long  tmp;
+	unsigned long  n;
+	long double t2;
+	if(start > stop){
+		tmp = start;
+		start=stop;
+		stop = tmp;
+	};
+	tmp = 0;
+	n = 0;
+	t2 = 0;
+	for(i=start; i<stop; i++){
+		tmp += data[i]*data[i];
+		if(tmp > (ULONG_MAX-SAFETY_MARGIN)){
+			t2 += tmp;
+			tmp = 0;
+		};
+	};
+	if(t2>0){
+		t2 +=tmp;
+		return sqrt(t2);
+	}else	return sqrt(tmp);
+}
 
 void Find_Min_Max(unsigned char *data, int lenght, int *min_pos, int *max_pos){	
 	int i;
